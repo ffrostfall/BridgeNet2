@@ -1,0 +1,21 @@
+title = "BridgeNet"
+gitRepoUrl = "https://github.com/ffrostflame/bridgenet/"
+
+gitSourceBranch = "main"
+changelog = true
+
+[docusaurus]
+projectName = "BridgeNet2"
+tagline = "Easy to use, optimized, and full of useful functionality."
+favicon = "favicon.png"
+
+[navbar.logo]
+alt = "BridgeNet"
+src = "logo.png"
+
+[footer]
+style = "dark"
+
+[home]
+enabled = true
+includeReadme = false

@@ -1,0 +1,12 @@
+{
+	"name": "bridgenet2",
+	"tree": {
+		"$className": "DataModel",
+		"Packages": {
+			"BridgeNet2": {
+				"$path": "src"
+			},
+			"$path": "Packages"
+		}
+	}
+}
