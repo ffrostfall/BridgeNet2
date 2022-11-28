@@ -17,6 +17,9 @@ local INVALID_PACKET_MESSAGE =
 	"Player %*:%* sent an invalid packet. Likely exploiter- or something interacted with the internal BridgeNet API."
 local PACKET_LIMIT_OVERFLOW =
 	"Player %*:%* has reached the packet limit of 12. Likely exploiter- or you're firing more than 12 times in the same frame."
+local ALL_PLAYERS = { "all" }
+
+local isServer = RunService:IsServer()
 
 local playerList: { [Player]: boolean? } = {}
 local loadingPlayers: { [Player]: number? } = {}
@@ -73,12 +76,14 @@ function Server._startProcess()
 		Players.PlayerAdded:Connect(function(plr)
 			playerList[plr] = true
 			loadingPlayers[plr] = 0
+			loadingPlayersQueue[plr] = {}
 			inboundQueue[plr] = {}
 		end)
 
 		Players.PlayerRemoving:Connect(function(plr)
 			playerList[plr] = nil
 			loadingPlayers[plr] = nil
+			loadingPlayersQueue[plr] = nil
 			inboundQueue[plr] = nil
 		end)
 
@@ -201,10 +206,11 @@ function Server._startProcess()
 				else
 					DataRemoteEvent:FireClient(plr, toSend)
 				end
+
+				sendStructure[plr] = nil
 			end
 
-			table.clear(sendStructure)
-
+			table.clear(outboundQueue)
 			-- End BridgeNet2 send profile
 			debug.profileend()
 
@@ -281,17 +287,21 @@ function Server._packetOverflowHandler(func: (plr: Player, num: number) -> nil)
 	packetOverflowHandler = func
 end
 
+function Server._idIntoBridge(identifier: string)
+	callbackMap[identifier] = {}
+end
+
 function Server._connect(identifier: string, callback: () -> nil)
 	table.insert(callbackMap[identifier], callback)
 end
 
 function Server.AllPlayers(): TPlayerType
-	Output.fatalAssert(RunService:IsServer(), "Cannot call .AllPlayers() from client")
-	return { "all" }
+	Output.fatalAssert(isServer, "Cannot call .AllPlayers() from client")
+	return ALL_PLAYERS
 end
 
 function Server.PlayersExcept(blacklistedPlayers: { Player }): TPlayerType
-	Output.fatalAssert(RunService:IsServer(), "Cannot call .AllPlayers() from client")
+	Output.fatalAssert(isServer, "Cannot call .AllPlayers() from client")
 	Output.fatalAssert(
 		typeof(blacklistedPlayers) == "table",
 		string.format("PlayersExcept takes an array of players, got %*", typeof(blacklistedPlayers))
@@ -300,7 +310,7 @@ function Server.PlayersExcept(blacklistedPlayers: { Player }): TPlayerType
 end
 
 function Server.Players(setOfPlayers: { Player }): TPlayerType
-	Output.fatalAssert(RunService:IsServer(), "Cannot call .AllPlayers() from client")
+	Output.fatalAssert(isServer, "Cannot call .AllPlayers() from client")
 	Output.fatalAssert(
 		typeof(setOfPlayers) == "table",
 		string.format("Players takes an array of players, got %*", typeof(setOfPlayers))

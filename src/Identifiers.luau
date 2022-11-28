@@ -49,10 +49,12 @@ function Identifiers.ReferenceIdentifier(name: string, maxWaitTime: number?): st
 		typeof(name) == "string",
 		string.format("ReferenceIdentifier takes string, got %*", typeof(name))
 	)
-	Output.fatalAssert(
-		typeof(maxWaitTime) ~= "nil" and typeof(maxWaitTime) ~= "number",
-		string.format("ReferenceIdentifier second arg maxWaitTime takes number, got %*", typeof(name))
-	)
+	if maxWaitTime ~= nil then
+		Output.fatalAssert(
+			typeof(maxWaitTime) == "number",
+			string.format("ReferenceIdentifier second arg maxWaitTime takes number, got %*", typeof(name))
+		)
+	end
 
 	if testingMode then
 		fullIdentifierMap[name] = name
@@ -62,39 +64,44 @@ function Identifiers.ReferenceIdentifier(name: string, maxWaitTime: number?): st
 
 	if RunService:IsServer() then
 		-- 2^16 is the number of combinations in 2 bytes
-		Output.fatalAssert(identifierCount >= 2 ^ 16, "cannot create any more identifiers, over 2^16 cap")
+		Output.warnAssert(identifierCount < (2 ^ 16), "cannot create any more identifiers, over 2^16 cap.")
+		Output.silent(string.format("creating identifier: %*, identifier count: %*", name, identifierCount))
 
 		identifierCount += 1
-		local packed: string = string.pack("H", identifierCount)
+		local packed: string = string.pack("B", identifierCount)
 		autoSerde:SetAttribute(name, packed)
 
-		fullIdentifierMap[packed] = packed
+		fullIdentifierMap[name] = packed
 		compressedIdentifierMap[packed] = name
+
+		return packed
 	else
 		if not fullIdentifierMap[name] then
 			local timeout = 0
 
 			while not fullIdentifierMap[name] do
-				task.wait()
-				if timeout >= maxWaitTime then
+				timeout += task.wait()
+				if timeout >= (maxWaitTime or 1) then
 					break
 				end
 			end
 
 			return if fullIdentifierMap[name]
 				then fullIdentifierMap[name]
-				else Output.Warn(string.format("infinite yield waiting for identifier %*", maxWaitTime))
+				else Output.warn(string.format("infinite yield waiting for identifier %*, broke yield.", name)) or ""
+		else
+			return fullIdentifierMap[name]
 		end
 	end
 end
 
 function Identifiers.Tree(tree: recursiveTree, waitTime: number?)
-	Output.fatalAssert(typeof(tree) == "table", string.format("Tree takes a table, not a %*", typeof(tree)))
+	Output.fatalAssert(typeof(tree) == "table", string.format("tree takes a table, not a %*", typeof(tree)))
 
 	local identifierTree = {}
 
 	for name, value in tree do
-		Output.errorAssert(typeof(name) == "string", "You should not pass a non-string value in your tree table")
+		Output.errorAssert(typeof(name) == "string", "you should not pass a non-string value in your tree table")
 		if typeof(value) == "table" then
 			Identifiers.Tree(value, waitTime or 0.8)
 		else

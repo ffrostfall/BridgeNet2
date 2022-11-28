@@ -49,6 +49,16 @@ function NetworkUtils.ToHex(toConvert: string): string
 	end) :: string
 end
 
+function NetworkUtils.ToReadableHex(toConvert: string): string
+	Output.fatalAssert(
+		typeof(toConvert) == "string",
+		string.format("ToReadableHex takes string, got %*", typeof(toConvert))
+	)
+	return string.gsub(toConvert, ".", function(c)
+		return string.format("%02X ", string.byte(c :: any))
+	end) :: string
+end
+
 function NetworkUtils.NumberToBestForm(num: number): number | string
 	if string.len(tostring(num)) <= 7 then
 		return tostring(num)

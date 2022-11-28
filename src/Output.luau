@@ -1,3 +1,4 @@
+local RunService = game:GetService("RunService")
 type ESeverityLevel = "log" | "warn" | "error" | "fatal"
 type TOutputObject = {
 	Severity: ESeverityLevel,
@@ -10,7 +11,8 @@ type TSeverityLevelEnum = {
 	Fatal: "fatal",
 }
 
-local PATTERN = "[BridgeNet2] %*"
+local PATTERN = if RunService:IsServer() then "[BridgeNet2] %*" else "[BridgeNet2] %*"
+local ERROR_PATTERN = if RunService:IsServer() then "[BridgeNet2:S] %*" else "[BridgeNet2:C] %*"
 local SEVERITY_LEVELS: TSeverityLevelEnum = {
 	Log = "log",
 	Warn = "warn",
@@ -45,7 +47,7 @@ end
 function Output.logAssert(condition: boolean, info: string)
 	if not condition then
 		logSeverity(SEVERITY_LEVELS.Log, info)
-		Output.Log(info)
+		Output.log(info)
 	end
 end
 
@@ -57,31 +59,31 @@ end
 function Output.warnAssert(condition: boolean, info: string)
 	if not condition then
 		logSeverity(SEVERITY_LEVELS.Warn, info)
-		Output.Warn(info)
+		Output.warn(info)
 	end
 end
 
 function Output.error(info: string)
 	logSeverity(SEVERITY_LEVELS.Error, info)
-	task.spawn(error, string.format(PATTERN, info))
+	task.spawn(error, string.format(ERROR_PATTERN, info))
 end
 
 function Output.errorAssert(condition: boolean, info: string)
 	if not condition then
 		logSeverity(SEVERITY_LEVELS.Error, info)
-		task.spawn(Output.Error, info)
+		task.spawn(Output.error, info)
 	end
 end
 
 function Output.fatal(info: string)
 	logSeverity(SEVERITY_LEVELS.Fatal, info)
-	error(string.format(PATTERN, info))
+	error(string.format(ERROR_PATTERN, info))
 end
 
 function Output.fatalAssert(condition: boolean, info: string)
 	if not condition then
 		logSeverity(SEVERITY_LEVELS.Fatal, info)
-		Output.Fatal(info)
+		Output.fatal(info)
 	end
 end
 

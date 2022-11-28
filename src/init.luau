@@ -112,15 +112,17 @@ local isServer = RunService:IsServer()
 	@within BridgeNet2
 ]]
 
-Output.log("Starting BridgeNet2 identifier process")
-Identifiers._startProcess()
-if isServer then
-	Output.log("Starting BridgeNet2 server process")
-	Server._startProcess()
-else
-	Output.log("Starting BridgeNet2 client process")
-	Client._startProcess()
-end
+task.spawn(function()
+	Output.log("Starting BridgeNet2 identifier process")
+	Identifiers._startProcess()
+	if isServer then
+		Output.log("Starting BridgeNet2 server process")
+		Server._startProcess()
+	else
+		Output.log("Starting BridgeNet2 client process")
+		Client._startProcess()
+	end
+end)
 
 local BASE_API = {
 	-- NetworkUtils
@@ -173,4 +175,33 @@ local API_SWITCH = { ["luau"] = LUAU_API, ["ts"] = TS_API }
 
 local TARGET_API = "luau"
 
-return TableKit.MergeDictionary(BASE_API, API_SWITCH[TARGET_API])
+return {
+	-- NetworkUtils
+	NumberToBestForm = NetworkUtils.NumberToBestForm,
+	ToHex = NetworkUtils.ToHex,
+	ToReadableHex = NetworkUtils.ToReadableHex,
+	FromHex = NetworkUtils.FromHex,
+	CreateUUID = NetworkUtils.CreateUUID,
+
+	-- Identifiers
+	ReferenceIdentifier = Identifiers.ReferenceIdentifier,
+	FromCompressed = Identifiers.FromCompressed,
+	FromIdentifier = Identifiers.FromIdentifier,
+
+	-- Players
+	AllPlayers = Server.AllPlayers,
+	PlayersExcept = Server.PlayersExcept,
+	Players = Server.Players,
+
+	-- Output
+	Hook = Output.Hook,
+
+	clientAddToQueue = Client._addToQueue,
+	serverAddToQueue = Server._addToQueue,
+
+	serverIdentifier = Server._idIntoBridge,
+	clientIdentifier = Client._idIntoBridge,
+
+	clientConnect = Client._connect,
+	serverConnect = Server._connect,
+} -- TableKit.MergeDictionary(BASE_API, API_SWITCH[TARGET_API])
