@@ -2,12 +2,10 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Output = require(script.Parent.Output)
-local TableKit = require(script.Parent.Parent.TableKit)
 
 type TData = { [any]: any }
 
 local outboundQueue: { string | {} } = {}
-local inboundQueue: { [string]: { {} } } = {}
 
 local callbackMap: { [string]: { () -> nil } } = {}
 
@@ -44,29 +42,16 @@ function Client._startProcess()
 		local DataRemoteEvent: RemoteEvent = ReplicatedStorage:WaitForChild("DataRemoteEvent")
 		local MetaRemoteEvent: RemoteEvent = ReplicatedStorage:WaitForChild("MetaRemoteEvent")
 
-		DataRemoteEvent.OnClientEvent:Connect(function(data: { [string]: { TData } })
-			for identifier, data in data do
-				
+		DataRemoteEvent.OnClientEvent:Connect(function(receivedData: { [string]: { TData } })
+			for identifier, data in receivedData do
+				for _, object in data do
+					RecycledSpawn(callbackMap[identifier], object)
+				end
 			end
 		end)
 
 		RunService.PostSimulation:Connect(function()
 			debug.profilebegin("BridgeNet2")
-
-			debug.profilebegin("BridgeNet2.Receive")
-
-			for identifier, data in inboundQueue do
-				local callbacks = callbackMap[identifier]
-
-				for _, call in data do
-					for _, callback in callbacks do
-						RecycledSpawn(callback, call)
-					end
-				end
-			end
-
-			table.clear(inboundQueue)
-			debug.profileend()
 
 			debug.profilebegin("BridgeNet2.Send")
 

@@ -3,8 +3,12 @@ local RunService = game:GetService("RunService")
 
 local Output = require(script.Parent.Output)
 
-local identifierCount = 0
+type recursiveTree = {
+	[string]: recursiveTree | string,
+}
+
 local testingMode = false
+local identifierCount = 0
 local compressedIdentifierMap: { [string]: string } = {}
 local fullIdentifierMap: { [string]: string } = {}
 local autoSerde
@@ -36,7 +40,8 @@ function Identifiers._startProcess()
 	end
 end
 
-function Identifiers.TestingMode() -- For testing w/ Hoarcekat and other similar things where yielding isn't an option
+function Identifiers._testingMode() -- For testing w/ Hoarcekat and other similar things where yielding isn't an option
+	testingMode = true
 end
 
 function Identifiers.ReferenceIdentifier(name: string, maxWaitTime: number?): string?
@@ -48,6 +53,12 @@ function Identifiers.ReferenceIdentifier(name: string, maxWaitTime: number?): st
 		typeof(maxWaitTime) ~= "nil" and typeof(maxWaitTime) ~= "number",
 		string.format("ReferenceIdentifier second arg maxWaitTime takes number, got %*", typeof(name))
 	)
+
+	if testingMode then
+		fullIdentifierMap[name] = name
+		compressedIdentifierMap[name] = name
+		return name
+	end
 
 	if RunService:IsServer() then
 		-- 2^16 is the number of combinations in 2 bytes
@@ -75,6 +86,23 @@ function Identifiers.ReferenceIdentifier(name: string, maxWaitTime: number?): st
 				else Output.Warn(string.format("infinite yield waiting for identifier %*", maxWaitTime))
 		end
 	end
+end
+
+function Identifiers.Tree(tree: recursiveTree, waitTime: number?)
+	Output.fatalAssert(typeof(tree) == "table", string.format("Tree takes a table, not a %*", typeof(tree)))
+
+	local identifierTree = {}
+
+	for name, value in tree do
+		Output.errorAssert(typeof(name) == "string", "You should not pass a non-string value in your tree table")
+		if typeof(value) == "table" then
+			Identifiers.Tree(value, waitTime or 0.8)
+		else
+			identifierTree[name] = Identifiers.ReferenceIdentifier(value, waitTime or 0.8)
+		end
+	end
+
+	return identifierTree
 end
 
 function Identifiers.FromCompressed(compressed: string): string?

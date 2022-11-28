@@ -1,29 +1,176 @@
 local RunService = game:GetService("RunService")
 
+local TableKit = require(script.Parent.TableKit)
 local Identifiers = require(script.Identifiers)
 local Server = require(script.ServerProcess)
 local Client = require(script.ClientProcess)
 local NetworkUtils = require(script.NetworkUtils)
+local Output = require(script.Output)
 
 local isServer = RunService:IsServer()
 
+--[[
+	@class BridgeNet2
+
+	The BridgeNet2 namespace which contains all of the functions included in the library. Luau and typescript APIs
+	are completely separate- you cannot use the typescript API in Luau, and vice versa.
+]]
+
+--[[
+	@function ToHex
+	@within BridgeNet2
+
+	Converts a string consisting of ASCII characters into hexadecimal. This is useful for representing
+	binary strings and other human unreadable data (for example, connection IDs) into strings, which
+	is easier to understand than say, a binary string which when directly converted into ASCII may have things
+	like line breaks, and other weird character codes. The function uses string.format and string.byte()
+	to convert the characters byte numerical code into hexadecimal.
+
+	```lua
+	-- "Example hexadecimal string" in ASCII
+	local asciiString = "Example hexadecimal string"
+	local hexString = BridgeNet2.ToHex(asciiString)
+
+	print(asciiString) -- Prints the hexadecimal form of 'Example hexadecimal string'
+	```
+
+	@param regularAscii string
+	@return string
+]]
+
+--[[
+	@function FromHex
+	@within BridgeNet2
+
+	Converts a hexadecimal string into a string of ASCII characters. This can be used for various purposes,
+	for example, converting a globally uniue identifier (GUID) into a binary string, which saves data. Or you
+	could convert a thread ID, or a memory address into a string for debugging purposes. Hexadecimal can be used
+	for a variety of purposes. The function uses string.char alongside tonumber(string, 16) to convert the
+	hexadecimal into a character code, which is converted into ASCII.
+
+	```lua
+	-- "Example hexadecimal string" in ASCII
+	local hexString = "4578616D706C652068657861646563696D616C20737472696E67"
+	local asciiString = BridgeNet2.FromHex(hexString)
+
+	print(asciiString) -- Prints 'Example hexadecimal string'
+	```
+
+	@param hexadecimal string
+	@return string
+]]
+
+--[[
+	@function NumberToBestForm
+	@within BridgeNet2
+
+	@param num number
+	@return number | string
+]]
+
+--[[
+	@function CreateUUID
+	@within BridgeNet2
+
+	@return string
+]]
+
+--[[
+	@function ReferenceIdentifier
+	@within BridgeNet2
+
+	@return string
+]]
+
+--[[
+	@function FromCompressed
+	@within BridgeNet2
+]]
+
+--[[
+	@function FromIdentifier
+	@within BridgeNet2
+]]
+
+--[[
+	@function AllPlayers
+	@within BridgeNet2
+]]
+
+--[[
+	@function PlayersExcept
+	@within BridgeNet2
+]]
+
+--[[
+	@function Players
+	@within BridgeNet2
+]]
+
+--[[
+	@function Hook
+	@within BridgeNet2
+]]
+
+Output.log("Starting BridgeNet2 identifier process")
 Identifiers._startProcess()
 if isServer then
+	Output.log("Starting BridgeNet2 server process")
 	Server._startProcess()
 else
+	Output.log("Starting BridgeNet2 client process")
 	Client._startProcess()
 end
 
-return {
+local BASE_API = {
 	-- NetworkUtils
 	NumberToBestForm = NetworkUtils.NumberToBestForm,
 	ToHex = NetworkUtils.ToHex,
 	FromHex = NetworkUtils.FromHex,
 	CreateUUID = NetworkUtils.CreateUUID,
-	DictionaryToTable = NetworkUtils.DictionaryToTable,
 
 	-- Identifiers
 	ReferenceIdentifier = Identifiers.ReferenceIdentifier,
 	FromCompressed = Identifiers.FromCompressed,
 	FromIdentifier = Identifiers.FromIdentifier,
+
+	-- Players
+	AllPlayers = Server.AllPlayers,
+	PlayersExcept = Server.PlayersExcept,
+	Players = Server.Players,
+
+	-- Output
+	Hook = Output.Hook,
 }
+
+type BASE_API = {
+	NumberToBestForm: (num: number) -> string | number,
+	ToHex: (regularText: string) -> string,
+	FromHex: (hex: string) -> string,
+	CreateUUID: () -> string,
+
+	ReferenceIdentifier: (string) -> string,
+	FromCompressed: (string) -> string?,
+	FromIdentifier: (string) -> string?,
+
+	AllPlayers: () -> { "all" },
+	PlayersExcept: (plrs: { Player }) -> { "except" | { Player } },
+	Players: (plrs: { Player }) -> { "set" | { Player } },
+
+	Hook: () -> {},
+}
+
+export type ESeverityLevel = "log" | "warn" | "error" | "fatal"
+export type TOutputObject = {
+	Severity: ESeverityLevel,
+	Text: string,
+}
+
+local LUAU_API = {}
+local TS_API = {}
+
+local API_SWITCH = { ["luau"] = LUAU_API, ["ts"] = TS_API }
+
+local TARGET_API = "luau"
+
+return TableKit.MergeDictionary(BASE_API, API_SWITCH[TARGET_API])

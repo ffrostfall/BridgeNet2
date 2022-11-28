@@ -1,0 +1,38 @@
+{
+	"compilerOptions": {
+		"declaration": true,
+		"module": "commonjs",
+		"strict": true,
+		"noFallthroughCasesInSwitch": true,
+		"strictNullChecks": true,
+		"esModuleInterop": true,
+		"removeComments": true,
+		"forceConsistentCasingInFileNames": true,
+		"composite": true,
+		"noLib": true,
+		"sourceMap": true,
+		"outDir": "out",
+		"baseUrl": "src",
+		"noImplicitAny": false,
+		"moduleResolution": "Node",
+		"allowSyntheticDefaultImports": true,
+		"typeRoots": ["node_modules/@rbxts"],
+		"paths": {
+			"*": ["*"]
+		},
+		"plugins": [
+			{
+				"transform": "typescript-transform-paths",
+				"exclude": ["**/node_modules/**"]
+			},
+			{
+				"transform": "typescript-transform-paths",
+				"exclude": ["**/node_modules/**"],
+				"afterDeclarations": true
+			}
+		],
+		"rootDir": "src",
+		"incremental": true,
+		"tsBuildInfoFile": "out/tsconfig.tsbuildinfo"
+	}
+}

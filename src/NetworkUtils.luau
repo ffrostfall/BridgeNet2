@@ -2,6 +2,33 @@ local HttpService = game:GetService("HttpService")
 
 local Output = require(script.Parent.Output)
 
+local NUMBERS = { "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" }
+local TYPECHECK = {}
+
+local function specialNumCheck(num: any)
+	local objType = typeof(num)
+
+	if objType == "string" or objType == "number" then
+		if objType == "string" then
+			for i = 1, string.len(objType) do
+				if not table.find(NUMBERS, string.sub(string.sub(objType, 1, 1), i, i)) then
+					return false
+				end
+			end
+
+			return true
+		else
+			return true
+		end
+	else
+		return false
+	end
+end
+
+local function getTypecheck()
+	return if TYPECHECK then specialNumCheck else typeof
+end
+
 local NetworkUtils = {}
 
 function NetworkUtils.CreateUUID(): string
@@ -28,27 +55,6 @@ function NetworkUtils.NumberToBestForm(num: number): number | string
 	else
 		return num
 	end
-end
-
-function NetworkUtils.DictionaryToTable(dict: { [string]: any })
-	Output.fatalAssert(typeof(dict) == "table", "dict must be a dictionary")
-	Output.warnAssert(getmetatable(dict) == nil, "passed dictionary has a metatable, this is not recommended")
-
-	local keys = {}
-	for key, _ in dict do
-		table.insert(keys, key)
-	end
-
-	table.sort(keys, function(a, b)
-		return string.lower(a) < string.lower(b)
-	end)
-
-	local toReturn = {}
-	for _, v in keys do
-		table.insert(toReturn, dict[v])
-	end
-
-	return toReturn
 end
 
 return NetworkUtils

@@ -286,10 +286,12 @@ function Server._connect(identifier: string, callback: () -> nil)
 end
 
 function Server.AllPlayers(): TPlayerType
+	Output.fatalAssert(RunService:IsServer(), "Cannot call .AllPlayers() from client")
 	return { "all" }
 end
 
 function Server.PlayersExcept(blacklistedPlayers: { Player }): TPlayerType
+	Output.fatalAssert(RunService:IsServer(), "Cannot call .AllPlayers() from client")
 	Output.fatalAssert(
 		typeof(blacklistedPlayers) == "table",
 		string.format("PlayersExcept takes an array of players, got %*", typeof(blacklistedPlayers))
@@ -298,6 +300,7 @@ function Server.PlayersExcept(blacklistedPlayers: { Player }): TPlayerType
 end
 
 function Server.Players(setOfPlayers: { Player }): TPlayerType
+	Output.fatalAssert(RunService:IsServer(), "Cannot call .AllPlayers() from client")
 	Output.fatalAssert(
 		typeof(setOfPlayers) == "table",
 		string.format("Players takes an array of players, got %*", typeof(setOfPlayers))
