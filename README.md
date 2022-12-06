@@ -5,22 +5,22 @@ Blazing fast networking library for Roblox.
 ---
 
 ## Features: Performance
- [x] **A lot faster** than Roblox's default systems. 
+- [x] **A lot faster** than Roblox's default systems. 
 - [x] **Reduces Roblox's overhead per remote call: client to server takes 5 bytes, server to client takes 2 bytes.** 
 - [x] Identifier system to help reduce bandwidth used on static strings; any size string will take 3 or 4 bytes. 
 - [x] Utilities for optimization: FromHex, ToHex, DictionaryToTable, and more. 
 - [x] Thread reusage on connections for extreme efficiency. 
 
 ## Features: Security
-[] Customizable rate limiting across all bridges- never worry about remote spamming again. 
+- [x] Customizable rate limiting across all bridges- never worry about remote spamming again. 
 - [x] Supports middleware for easy typechecking and security implementation. 
 - [x] Internally secure. It is impossible to cause an error in the library as an exploiter. 
 
 ## Features: Abstraction
 - [x] Queues up remote calls to a player until they are loaded- never worry about the invocation queue again. 
 - [x] Instances are abstracted away- never worry about RemoteEvents again. 
-[] Abstract any optimization needed away from you- convert dictionaries to arrays and back easily. 
-[] Don't worry about client/server boundaries when defining remotes. ReferenceBridge and CreateTree have you!  
+- [x] Abstract any optimization needed away from you- convert dictionaries to arrays and back easily. 
+- [x] Don't worry about client/server boundaries when defining remotes. ReferenceBridge and CreateTree have you!  
 
 ## Features: API
 - [x] Fully typed in strict Luau. 
