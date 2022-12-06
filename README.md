@@ -5,7 +5,7 @@ Blazing fast networking library for Roblox.
 ---
 
 ## Features: Performance
-- **A lot faster** than Roblox's default systems. [Done]
+- [x] **A lot faster** than Roblox's default systems. [Done]
 - **Reduces Roblox's overhead per remote call: client to server takes 5 bytes, server to client takes 2 bytes.** [Done]
 - Identifier system to help reduce bandwidth used on static strings; any size string will take 3 or 4 bytes. [Done]
 - Utilities for optimization: FromHex, ToHex, DictionaryToTable, and more. [Done]
