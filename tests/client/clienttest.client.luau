@@ -1,8 +1,19 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 local BridgeNet2 = require(ReplicatedStorage.Packages.bridgenet2)
 
-BridgeNet2.ReferenceIdentifier("bridge")
+local test: BridgeNet2.ClientBridge<{ number }> = BridgeNet2.ReferenceBridge("Test")
 
-BridgeNet2.clientIdentifier(BridgeNet2.FromIdentifier("bridge"))
+print(test)
 
-BridgeNet2.clientConnect(BridgeNet2.FromIdentifier("bridge"), function() end)
+test:Connect(function(obj)
+	print(obj)
+end)
+
+while true do
+	test:Fire({
+		os.clock(),
+	})
+	ReplicatedStorage.RemoteEvent:FireServer(os.clock())
+	task.wait(1)
+end

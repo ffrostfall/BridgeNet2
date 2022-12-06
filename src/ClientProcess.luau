@@ -8,14 +8,15 @@ type TData = { [any]: any }
 local outboundQueue: { string | {} } = {}
 local inboundQueue: { { [string]: { { [any]: any } } } } = {}
 
-local callbackMap: { [string]: { () -> nil } } = {}
+local callbackMap: { [string]: { (object: any) -> () } } = {}
 
 local freeThread -- Thread reusage
+local func = nil
 
-local function Passer(fn, payload)
+local function Passer(payload)
 	local acquiredThread = freeThread
 	freeThread = nil
-	fn(payload)
+	func(payload)
 	freeThread = acquiredThread
 end
 
@@ -25,12 +26,12 @@ local function yielder()
 	end
 end
 
-local function RecycledSpawn(fn, payload)
+local function RecycledSpawn(payload)
 	if not freeThread then
 		freeThread = coroutine.create(yielder)
 		coroutine.resume(freeThread)
 	end
-	task.spawn(freeThread, fn, payload)
+	coroutine.resume(freeThread, payload)
 end
 
 local Client = {}
@@ -61,21 +62,27 @@ function Client._startProcess()
 		debug.profilebegin("BridgeNet2.Receive")
 		if #inboundQueue > 0 then
 			for _, obj in inboundQueue do
+				debug.profilebegin("packet")
 				for identifier, data in obj do
+					debug.profilebegin("fired: " .. #data)
 					local calls = callbackMap[identifier]
 					if #calls == 1 then
 						local callback = calls[1]
 						for _, object in data do
-							RecycledSpawn(callback, object)
+							func = callback
+							RecycledSpawn(object)
 						end
 					else
 						for _, object in data do
 							for _, callback in calls do
-								RecycledSpawn(callback, object)
+								func = callback
+								RecycledSpawn(object)
 							end
 						end
 					end
+					debug.profileend()
 				end
+				debug.profileend()
 			end
 			table.clear(inboundQueue)
 		end
@@ -98,7 +105,7 @@ function Client._addToQueue(identifier: string, object: {})
 	table.insert(outboundQueue, object)
 end
 
-function Client._connect(identifier: string, callback: () -> nil)
+function Client._connect(identifier: string, callback: (object: any) -> ())
 	table.insert(callbackMap[identifier], callback)
 end
 

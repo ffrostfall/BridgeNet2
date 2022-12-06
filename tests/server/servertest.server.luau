@@ -3,12 +3,19 @@ local RunService = game:GetService("RunService")
 
 local BridgeNet2 = require(ReplicatedStorage.Packages.bridgenet2)
 
-BridgeNet2.ReferenceIdentifier("bridge")
+local test: BridgeNet2.ServerBridge<{}> = BridgeNet2.ReferenceBridge("Test")
 
-BridgeNet2.serverIdentifier(BridgeNet2.FromIdentifier("bridge"))
+print(test)
 
-RunService.Heartbeat:Connect(function()
-	for i = 1, 200 do
-		BridgeNet2.serverAddToQueue(BridgeNet2.AllPlayers(), BridgeNet2.FromIdentifier("bridge"), {})
-	end
+test:Connect(function(plr, obj)
+	print(plr, os.clock() - obj[1])
 end)
+
+ReplicatedStorage.RemoteEvent.OnServerEvent:Connect(function(plr, tim)
+	print(os.clock() - tim)
+end)
+
+while true do
+	test:Fire(BridgeNet2.AllPlayers(), {})
+	task.wait(1)
+end

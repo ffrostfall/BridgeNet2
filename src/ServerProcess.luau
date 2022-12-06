@@ -1,4 +1,4 @@
----@diagnostic disable: unused-local
+---@diagnostic disable: unused-local, unused-vararg
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -6,7 +6,7 @@ local RunService = game:GetService("RunService")
 local Output = require(script.Parent.Output)
 local TableKit = require(script.Parent.Parent.TableKit)
 
-type TPlayerType = {
+export type TPlayerType = {
 	[number]: string | { Player },
 }
 type TMetaMessage = "loaded"
@@ -17,7 +17,6 @@ local INVALID_PACKET_MESSAGE =
 	"Player %*:%* sent an invalid packet. Likely exploiter- or something interacted with the internal BridgeNet API."
 local PACKET_LIMIT_OVERFLOW =
 	"Player %*:%* has reached the packet limit of 12. Likely exploiter- or you're firing more than 12 times in the same frame."
-local ALL_PLAYERS = { "all" }
 
 local isServer = RunService:IsServer()
 
@@ -30,9 +29,16 @@ local inboundQueue: { [Player]: TInboundPacket? } = {}
 
 local callbackMap: { [string]: { () -> nil } } = {}
 
-local incorrectFormatHandler: (plr: Player) -> nil = function(plr) end
-local incorrectTypeHandler: (plr: Player) -> nil = function(plr) end
-local packetOverflowHandler: (plr: Player, number) -> nil = function(plr, packetAmount) end
+-- Placeholder functions
+local incorrectFormatHandler: (plr: Player) -> () = function(...)
+	return ...
+end
+local incorrectTypeHandler: (plr: Player) -> () = function(...)
+	return ...
+end
+local packetOverflowHandler: (plr: Player, number) -> () = function(...)
+	return ...
+end
 
 local freeThread -- Thread reusage
 
@@ -97,6 +103,7 @@ function Server._startProcess()
 
 		DataRemoteEvent.OnServerEvent:Connect(
 			function(plr, tbl) -- Do typechecking before inserting it into the queue- minimize errors in the queue.
+				print(tbl)
 				if typeof(tbl) ~= "table" then -- Invalid packet
 					incorrectTypeHandler(plr)
 					Output.warn(string.format(INVALID_PACKET_MESSAGE, plr.Name, plr.UserId))
@@ -104,7 +111,7 @@ function Server._startProcess()
 				end
 
 				for _, v: TInboundPacket in tbl do
-					if typeof(v) ~= "table" then
+					if typeof(v) ~= "table" and typeof(v) ~= "string" then
 						incorrectTypeHandler(plr)
 						Output.warn(string.format(INVALID_PACKET_MESSAGE, plr.Name, plr.UserId))
 						return
@@ -223,22 +230,31 @@ function Server._startProcess()
 					continue
 				end
 
-				for position = 1, #data / 2 do
-					local identifier: string = data[position]
-					if typeof(identifier) ~= "string" then
+				local skip = false
+				for position, value in data do
+					-- Got skipped because last one was an identifier
+					if skip == true then
+						skip = false
+						continue
+					end
+					if typeof(value) == "string" then
+						skip = true
+					else
 						incorrectFormatHandler(plr)
 						Output.warn(string.format("Incorrect format from player: %*:%*", plr.Name, plr.UserId))
 						continue
 					end
 
-					local userObject: {} = data[position + 1]
-					if typeof(identifier) ~= "table" then
+					if typeof(data[position + 1]) ~= "table" then
 						incorrectFormatHandler(plr)
 						Output.warn(string.format("Incorrect format from player: %*:%*", plr.Name, plr.UserId))
 						continue
 					end
 
-					RecycledSpawn(callbackMap[identifier], userObject)
+					local passed = data[position + 1]
+					for _, callback in callbackMap[value] do
+						RecycledSpawn(callback, plr, passed)
+					end
 				end
 
 				table.clear(inboundQueue[plr])
@@ -291,13 +307,13 @@ function Server._idIntoBridge(identifier: string)
 	callbackMap[identifier] = {}
 end
 
-function Server._connect(identifier: string, callback: () -> nil)
+function Server._connect(identifier: string, callback: (player: Player, object: any) -> nil)
 	table.insert(callbackMap[identifier], callback)
 end
 
 function Server.AllPlayers(): TPlayerType
 	Output.fatalAssert(isServer, "Cannot call .AllPlayers() from client")
-	return ALL_PLAYERS
+	return { "all" }
 end
 
 function Server.PlayersExcept(blacklistedPlayers: { Player }): TPlayerType

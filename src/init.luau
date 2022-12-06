@@ -1,11 +1,14 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local TableKit = require(script.Parent.TableKit)
 local Identifiers = require(script.Identifiers)
 local Server = require(script.ServerProcess)
 local Client = require(script.ClientProcess)
 local NetworkUtils = require(script.NetworkUtils)
 local Output = require(script.Output)
+local ObjectFormat = require(script.ObjectFormat)
+local ServerBridge = require(script.ServerBridge)
+local ClientBridge = require(script.ClientBridge)
 
 local isServer = RunService:IsServer()
 
@@ -113,8 +116,10 @@ local isServer = RunService:IsServer()
 ]]
 
 task.spawn(function()
-	Output.log("Starting BridgeNet2 identifier process")
+	Output.silent("Starting BridgeNet2 identifier process")
 	Identifiers._startProcess()
+	Output.silent("Starting BridgeNet2 object format process")
+	ObjectFormat._startProcess()
 	if isServer then
 		Output.log("Starting BridgeNet2 server process")
 		Server._startProcess()
@@ -124,58 +129,35 @@ task.spawn(function()
 	end
 end)
 
-local BASE_API = {
-	-- NetworkUtils
-	NumberToBestForm = NetworkUtils.NumberToBestForm,
-	ToHex = NetworkUtils.ToHex,
-	FromHex = NetworkUtils.FromHex,
-	CreateUUID = NetworkUtils.CreateUUID,
-
-	-- Identifiers
-	ReferenceIdentifier = Identifiers.ReferenceIdentifier,
-	FromCompressed = Identifiers.FromCompressed,
-	FromIdentifier = Identifiers.FromIdentifier,
-
-	-- Players
-	AllPlayers = Server.AllPlayers,
-	PlayersExcept = Server.PlayersExcept,
-	Players = Server.Players,
-
-	-- Output
-	Hook = Output.Hook,
-}
-
-type BASE_API = {
-	NumberToBestForm: (num: number) -> string | number,
-	ToHex: (regularText: string) -> string,
-	FromHex: (hex: string) -> string,
-	CreateUUID: () -> string,
-
-	ReferenceIdentifier: (string) -> string,
-	FromCompressed: (string) -> string?,
-	FromIdentifier: (string) -> string?,
-
-	AllPlayers: () -> { "all" },
-	PlayersExcept: (plrs: { Player }) -> { "except" | { Player } },
-	Players: (plrs: { Player }) -> { "set" | { Player } },
-
-	Hook: () -> {},
-}
-
 export type ESeverityLevel = "log" | "warn" | "error" | "fatal"
 export type TOutputObject = {
 	Severity: ESeverityLevel,
 	Text: string,
 }
 
-local LUAU_API = {}
-local TS_API = {}
+-- Dependency dupe prevention
+if isServer then
+	Output.warnAssert(
+		script:IsDescendantOf(ReplicatedStorage),
+		"It is strongly recommended to put the BridgeNet module in ReplicatedStorage, where both the client and server can access it."
+	)
 
-local API_SWITCH = { ["luau"] = LUAU_API, ["ts"] = TS_API }
+	local exists = ReplicatedStorage:FindFirstChild("BridgeNet2") :: ObjectValue
+	if exists then
+		Output.warn(
+			"Duplicate dependency found. Either use Wally, a package manager for roblox, or centralize your packages so dependency duping doesn't occur,"
+		)
+		return require(exists.Value)
+	else
+		local value = Instance.new("ObjectValue")
+		value.Value = script
+		value.Name = "BridgeNet2"
+		value.Parent = ReplicatedStorage
+	end
+end
 
-local TARGET_API = "luau"
-
-return {
+--[[
+	return {
 	-- NetworkUtils
 	NumberToBestForm = NetworkUtils.NumberToBestForm,
 	ToHex = NetworkUtils.ToHex,
@@ -196,12 +178,96 @@ return {
 	-- Output
 	Hook = Output.Hook,
 
-	clientAddToQueue = Client._addToQueue,
-	serverAddToQueue = Server._addToQueue,
+	-- ReferenceBridge, pretty hacky.
+	ServerBridge = ServerBridge,
+	ClientBridge = ClientBridge,
 
-	serverIdentifier = Server._idIntoBridge,
-	clientIdentifier = Client._idIntoBridge,
+	ReferenceBridge = (function()
+		if isServer then
+			return ServerBridge
+		else
+			return ClientBridge
+		end
+	end)(),
+}
 
-	clientConnect = Client._connect,
-	serverConnect = Server._connect,
-} -- TableKit.MergeDictionary(BASE_API, API_SWITCH[TARGET_API])
+]]
+
+export type ClientBridge<T> = ClientBridge.ClientBridge<T>
+export type ServerBridge<T> = ServerBridge.ServerBridge<T>
+
+return {
+	-- NetworkUtils
+	NumberToBestForm = NetworkUtils.NumberToBestForm,
+
+	--[[
+	@function ToHex
+	@within BridgeNet2
+
+	Converts a string consisting of ASCII characters into hexadecimal. This is useful for representing
+	binary strings and other human unreadable data (for example, connection IDs) into strings, which
+	is easier to understand than say, a binary string which when directly converted into ASCII may have things
+	like line breaks, and other weird character codes. The function uses string.format and string.byte()
+	to convert the characters byte numerical code into hexadecimal.
+
+	```lua
+	-- "Example hexadecimal string" in ASCII
+	local asciiString = "Example hexadecimal string"
+	local hexString = BridgeNet2.ToHex(asciiString)
+
+	print(asciiString) -- Prints the hexadecimal form of 'Example hexadecimal string'
+	```
+
+	@param regularAscii string
+	@return string
+	]]
+	ToHex = NetworkUtils.ToHex,
+	ToReadableHex = NetworkUtils.ToReadableHex,
+
+	--[[
+	@function FromHex
+	@within BridgeNet2
+
+	Converts a hexadecimal string into a string of ASCII characters. This can be used for various purposes,
+	for example, converting a globally uniue identifier (GUID) into a binary string, which saves data. Or you
+	could convert a thread ID, or a memory address into a string for debugging purposes. Hexadecimal can be used
+	for a variety of purposes. The function uses string.char alongside tonumber(string, 16) to convert the
+	hexadecimal into a character code, which is converted into ASCII.
+
+	```lua
+	-- "Example hexadecimal string" in ASCII
+	local hexString = "4578616D706C652068657861646563696D616C20737472696E67"
+	local asciiString = BridgeNet2.FromHex(hexString)
+
+	print(asciiString) -- Prints 'Example hexadecimal string'
+	```
+
+	@param hexadecimal string
+	@return string
+	]]
+	FromHex = NetworkUtils.FromHex,
+	CreateUUID = NetworkUtils.CreateUUID,
+
+	-- Identifiers
+	ReferenceIdentifier = Identifiers.ReferenceIdentifier,
+	FromCompressed = Identifiers.FromCompressed,
+	FromIdentifier = Identifiers.FromIdentifier,
+
+	-- Players
+	AllPlayers = Server.AllPlayers,
+	PlayersExcept = Server.PlayersExcept,
+	Players = Server.Players,
+
+	DebugMode = (function() end)(),
+
+	-- Output
+	Hook = Output.Hook,
+
+	ReferenceBridge = (function()
+		if isServer then
+			return ServerBridge._new
+		else
+			return ClientBridge._new
+		end
+	end)() :: (name: string) -> (ClientBridge<any> | ServerBridge<any>),
+}
