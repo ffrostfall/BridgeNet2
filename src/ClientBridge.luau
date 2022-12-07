@@ -1,5 +1,6 @@
 local ClientProcess = require(script.Parent.ClientProcess)
 local Identifiers = require(script.Parent.Identifiers)
+local Output = require(script.Parent.Output)
 
 local ClientBridge = {}
 ClientBridge.__index = ClientBridge
@@ -12,15 +13,66 @@ function ClientBridge._new(name: string)
 	self._identifier = Identifiers.ReferenceIdentifier(name)
 	ClientProcess._idIntoBridge(self._identifier)
 
+	self._inboundMiddlewares = {}
+	self._outboundMiddlewares = {}
+
 	return self
 end
 
-function ClientBridge:Fire(object)
-	ClientProcess._addToQueue(self._identifier, object)
+function ClientBridge:InboundMiddleware(middlewareTable: { (object: any) -> any })
+	self._inboundMiddlewares = middlewareTable
 end
 
-function ClientBridge:Connect(callback: (obj: any) -> ())
-	ClientProcess._connect(self._identifier, callback)
+function ClientBridge:OutboundMiddleware(middlewareTable: { (object: any) -> any })
+	self._outboundMiddlewares = middlewareTable
+end
+
+function ClientBridge:Fire(object)
+	if self._outboundMiddleware ~= nil then
+		local result = object
+
+		-- Loop through the middleware functions- raise a silent log if any of them return nil for debugging.
+		for _, middlewareFunction: (object: any) -> any in self._outboundMiddlewares do
+			result = middlewareFunction(result)
+				or (
+					Output.silent(
+						string.format(
+							"Outbound middleware on bridge %* returned nil, defaulting to object.",
+							self._name
+						)
+					) or object
+				)
+		end
+
+		ClientProcess._addToQueue(self._identifier, result)
+	else
+		ClientProcess._addToQueue(self._identifier, object)
+	end
+end
+
+function ClientBridge:Connect(callback: (object: any) -> ())
+	ClientProcess._connect(self._identifier, function(object)
+		if self._inboundMiddlewares ~= nil then
+			local result = object
+
+			-- Loop through the middleware functions- raise a silent log if any of them return nil for debugging.
+			for _, middlewareFunction: (player: Player, object: any) -> any in self._inboundMiddlewares do
+				result = middlewareFunction(result)
+					or (
+						Output.silent(
+							string.format(
+								"Inbound middleware on bridge %* returned nil, defaulting to object.",
+								self._name
+							)
+						) or object
+					)
+			end
+
+			callback(result)
+		else
+			callback(object)
+		end
+	end)
 end
 
 function ClientBridge:Destroy()

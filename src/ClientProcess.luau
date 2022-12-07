@@ -13,7 +13,7 @@ local callbackMap: { [string]: { (object: any) -> () } } = {}
 local freeThread -- Thread reusage
 local func = nil
 
-local function Passer(payload)
+local function passer(payload)
 	local acquiredThread = freeThread
 	freeThread = nil
 	func(payload)
@@ -22,7 +22,7 @@ end
 
 local function yielder()
 	while true do
-		Passer(coroutine.yield())
+		passer(coroutine.yield())
 	end
 end
 

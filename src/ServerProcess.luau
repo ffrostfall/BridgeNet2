@@ -42,7 +42,7 @@ end
 
 local freeThread -- Thread reusage
 
-local function Passer(fn, ...)
+local function passer(fn, ...)
 	local acquiredThread = freeThread
 	freeThread = nil
 	fn(...)
@@ -51,7 +51,7 @@ end
 
 local function yielder()
 	while true do
-		Passer(coroutine.yield())
+		passer(coroutine.yield())
 	end
 end
 
