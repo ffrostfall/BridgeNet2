@@ -1,0 +1,15 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local BridgeNet2 = require(ReplicatedStorage.Packages.bridgenet2)
+
+local TestType: StringValue = ReplicatedStorage:WaitForChild("StressTestValue") :: StringValue
+
+if TestType.Value == "roblox" then
+	local RemoteEvent = ReplicatedStorage:WaitForChild("RemoteEvent") :: RemoteEvent
+
+	RemoteEvent.OnClientEvent:Connect(function() end)
+elseif TestType.Value == "bridgenet2" then
+	local Bridge = BridgeNet2.ReferenceBridge("test")
+
+	Bridge:Connect(function(player, object) end)
+end

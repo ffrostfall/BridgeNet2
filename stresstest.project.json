@@ -1,5 +1,5 @@
 {
-	"name": "bridgenet2-test",
+	"name": "bridgenet2-stresstest",
 	"tree": {
 		"$className": "DataModel",
 		"ReplicatedStorage": {
@@ -10,17 +10,20 @@
 					"$path": "src"
 				}
 			},
-			"framework": {
-				"$path": "testing/framework"
+			"StressTestValue": {
+				"$className": "StringValue",
+				"$properties": {
+					"Value": "BridgeNet2"
+				}
 			}
 		},
 		"StarterPlayer": {
 			"StarterPlayerScripts": {
-				"$path": "testing/tests/client"
+				"$path": "testing/stress/client"
 			}
 		},
 		"ServerScriptService": {
-			"$path": "testing/tests/server"
+			"$path": "testing/stress/server"
 		}
 	}
 }

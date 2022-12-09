@@ -279,7 +279,7 @@ function Server._addToQueue(plrs: TPlayerType, identifier: string, payload: { [a
 	})
 end
 
-function Server._incorrectFormatHandler(func: (plr: Player) -> nil)
+function Server._incorrectFormatHandler(func: (plr: Player) -> ())
 	Output.fatalAssert(
 		typeof(func) == "function",
 		string.format("incorrectFormatHandler takes a function, got %*", typeof(func))
@@ -287,7 +287,7 @@ function Server._incorrectFormatHandler(func: (plr: Player) -> nil)
 	incorrectFormatHandler = func
 end
 
-function Server._incorrectTypeHandler(func: (plr: Player) -> nil)
+function Server._incorrectTypeHandler(func: (plr: Player) -> ())
 	Output.fatalAssert(
 		typeof(func) == "function",
 		string.format("incorrectTypeHandler takes a function, got %*", typeof(func))
@@ -295,7 +295,7 @@ function Server._incorrectTypeHandler(func: (plr: Player) -> nil)
 	incorrectTypeHandler = func
 end
 
-function Server._packetOverflowHandler(func: (plr: Player, num: number) -> nil)
+function Server._packetOverflowHandler(func: (plr: Player, num: number) -> ())
 	Output.fatalAssert(
 		typeof(func) == "function",
 		string.format("packetOverflowHandler takes a function, got %*", typeof(func))

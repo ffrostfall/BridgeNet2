@@ -1,10 +1,16 @@
 local Tree = {}
 Tree.__index = Tree
 
-function Tree.new()
+function Tree._new()
 	local self = setmetatable({}, Tree)
 
+	self._tree = {}
+
 	return self
+end
+
+function Tree:Get(str: string)
+	
 end
 
 function Tree:Destroy()

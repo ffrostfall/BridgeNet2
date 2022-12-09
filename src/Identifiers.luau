@@ -11,23 +11,23 @@ local testingMode = false
 local identifierCount = 0
 local compressedIdentifierMap: { [string]: string } = {}
 local fullIdentifierMap: { [string]: string } = {}
-local autoSerde
+local IdentifierStorage
 
 local Identifiers = {}
 
 function Identifiers._startProcess()
 	if RunService:IsServer() then
-		autoSerde = Instance.new("Folder")
-		autoSerde.Name = "autoSerde"
-		autoSerde.Parent = ReplicatedStorage
+		IdentifierStorage = Instance.new("Folder")
+		IdentifierStorage.Name = "IdentifierStorage"
+		IdentifierStorage.Parent = ReplicatedStorage
 	else
-		autoSerde = ReplicatedStorage:WaitForChild("autoSerde")
-		for id, value in autoSerde:GetAttributes() do
+		IdentifierStorage = ReplicatedStorage:WaitForChild("IdentifierStorage")
+		for id, value in IdentifierStorage:GetAttributes() do
 			fullIdentifierMap[id] = value
 			compressedIdentifierMap[value] = id
 		end
-		autoSerde.AttributeChanged:Connect(function(id: string)
-			local packed: string = autoSerde:GetAttribute(id)
+		IdentifierStorage.AttributeChanged:Connect(function(id: string)
+			local packed: string = IdentifierStorage:GetAttribute(id)
 			if packed then
 				fullIdentifierMap[id] = packed
 				compressedIdentifierMap[packed] = id
@@ -69,7 +69,7 @@ function Identifiers.ReferenceIdentifier(name: string, maxWaitTime: number?): st
 
 		identifierCount += 1
 		local packed: string = string.pack("B", identifierCount)
-		autoSerde:SetAttribute(name, packed)
+		IdentifierStorage:SetAttribute(name, packed)
 
 		fullIdentifierMap[name] = packed
 		compressedIdentifierMap[packed] = name
@@ -88,7 +88,7 @@ function Identifiers.ReferenceIdentifier(name: string, maxWaitTime: number?): st
 
 			return if fullIdentifierMap[name]
 				then fullIdentifierMap[name]
-				else Output.warn(string.format("infinite yield waiting for identifier %*, broke yield.", name)) or ""
+				else Output.warn(string.format("reached max wait time for identifier %*, broke yield.", name)) or ""
 		else
 			return fullIdentifierMap[name]
 		end

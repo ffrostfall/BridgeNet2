@@ -196,8 +196,45 @@ end
 export type ClientBridge<T> = ClientBridge.ClientBridge<T>
 export type ServerBridge<T> = ServerBridge.ServerBridge<T>
 
-return {
+export type TSecurityMeasures = "incorrectFormat" | "incorrectType" | "packetOverflow"
+type TSecurityMeasuresEnum = {
+	IncorrectFormat: "incorrectFormat",
+	IncorrectType: "incorrectType",
+	PacketOverflow: "packetOverflow",
+}
+
+local SecurityMeasures: TSecurityMeasuresEnum = {
+	IncorrectFormat = "incorrectFormat",
+	IncorrectType = "incorrectType",
+	PacketOverflow = "packetOverflow",
+}
+
+local ReturnValue = {
 	-- NetworkUtils
+
+	--[[
+	@function NumberToBestForm
+	@within BridgeNet2
+
+	Takes a number, and converts it into its most network efficient form. This works because a number is 9 bytes- but strings are (stringLen)+2,
+	so a 1-character string to store a 1-digit number is more efficient than sending it as an actual number. This is way better- and it shows up
+	at any real, practical scale. If you send this number over, you should **always** be calling tonumber on it! That is NOT optional.
+
+	```lua
+	-- "Example hexadecimal string" in ASCII
+	local smallNumber = 4
+	local bigNumber = 1000000000
+
+	local smallNumberBestForm = BridgeNet2.NumberToBestForm(smallNumber)
+	print(typeof(smallNumberBestForm)) -- prints "string"
+	
+	local bigNumberBestForm = BridgeNet2.NumberToBestForm(bigNumber)
+	print(typeof(bigNumberBestForm)) -- prints "number"
+	```
+
+	@param number number
+	@return string | number
+	]]
 	NumberToBestForm = NetworkUtils.NumberToBestForm,
 
 	--[[
@@ -215,13 +252,34 @@ return {
 	local asciiString = "Example hexadecimal string"
 	local hexString = BridgeNet2.ToHex(asciiString)
 
-	print(asciiString) -- Prints the hexadecimal form of 'Example hexadecimal string'
+	print(hexString) -- Prints the hexadecimal form of 'Example hexadecimal string'
 	```
 
 	@param regularAscii string
 	@return string
 	]]
 	ToHex = NetworkUtils.ToHex,
+
+	--[[
+	@function ToReadableHex
+	@within BridgeNet2
+
+	Converts a string consisting of ASCII characters into a more readable (bytes are separated) string of hex. This is mostly used for
+	debugging binary strings- it looks nicer than ToHex. There are practical applications where ToHex is used internally and never revealed
+	for debugging- but when hexadecimal is needed for debugging (as output strings can get cluttered very very quickly), this function
+	should be used instead.
+
+	```lua
+	-- "Example hexadecimal string" in ASCII
+	local asciiString = "Example hexadecimal string"
+	local hexString = BridgeNet2.ToHex(asciiString)
+
+	print(hexString) -- Prints the hexadecimal form of 'Example hexadecimal string', but with spaces.
+	```
+
+	@param regularAscii string
+	@return string
+	]]
 	ToReadableHex = NetworkUtils.ToReadableHex,
 
 	--[[
@@ -235,7 +293,7 @@ return {
 	hexadecimal into a character code, which is converted into ASCII.
 
 	```lua
-	-- "Example hexadecimal string" in ASCII
+	-- "Example hexadecimal string" in hex
 	local hexString = "4578616D706C652068657861646563696D616C20737472696E67"
 	local asciiString = BridgeNet2.FromHex(hexString)
 
@@ -270,4 +328,22 @@ return {
 			return ClientBridge._new
 		end
 	end)() :: (name: string) -> (ClientBridge<any> | ServerBridge<any>),
+
+	SetSecurity = function(
+		securityMeasure: TSecurityMeasures,
+		func: (player: Player) -> () | (player: Player, num: number) -> ()
+	)
+		Output.fatalAssert(isServer, "Cannot call SetSecurity from client")
+
+		if securityMeasure == "incorrectType" then
+			Server._incorrectTypeHandler(func)
+		elseif securityMeasure == "incorrectFormat" then
+			Server._incorrectFormatHandler(func)
+		elseif securityMeasure == "packetOverflow" then
+			Server._packetOverflowHandler(func)
+		end
+	end,
+	SecurityMeasuresEnum = SecurityMeasures,
 }
+
+return ReturnValue

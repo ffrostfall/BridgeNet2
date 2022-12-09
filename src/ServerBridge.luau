@@ -2,6 +2,8 @@ local ServerProcess = require(script.Parent.ServerProcess)
 local Identifiers = require(script.Parent.Identifiers)
 local Output = require(script.Parent.Output)
 
+type TOptionalCallback<T> = (() -> T) | (() -> nil) | (() -> ())
+
 local ServerBridge = {}
 ServerBridge.__index = ServerBridge
 
@@ -13,6 +15,13 @@ function ServerBridge._new(name: string)
 
 	self._inboundMiddlewares = nil
 	self._name = name
+
+	self._rateLimiting = false
+	self._maxRate = 500
+	self._rateMap = {}
+	self._overflowFunction = function()
+		return false
+	end
 
 	ServerProcess._idIntoBridge(self._identifier)
 
@@ -29,6 +38,20 @@ end
 
 function ServerBridge:Connect<T>(callback: (player: Player, object: T) -> nil)
 	ServerProcess._connect(self._identifier, function(player, object)
+		if self._rateLimiting then
+			if self._rateMap[player] ~= nil then
+				self._rateMap[player] += 1
+			else
+				self._rateMap[player] = 1
+			end
+
+			if self._rateMap[player] > self._maxRate then
+				if not self._overflowFunction(player) then
+					return
+				end
+			end
+		end
+
 		if self._inboundMiddlewares ~= nil then
 			local result = object
 
@@ -50,6 +73,16 @@ function ServerBridge:Connect<T>(callback: (player: Player, object: T) -> nil)
 			callback(player, object)
 		end
 	end)
+end
+
+function ServerBridge:RateLimit(invokesPerSecond: number, overflowFunction: (player: Player) -> nil)
+	self._rateLimiting = true
+	self._overflowFunction = overflowFunction
+	self._maxRate = invokesPerSecond
+end
+
+function ServerBridge:DisableRateLimit()
+	self._rateLimiting = false
 end
 
 function ServerBridge:Fire<T>(target: ServerProcess.TPlayerType, object: T)
@@ -85,10 +118,22 @@ end
 
 -- () -> () means it returns void. Pretty neat trick I learned from Aloroider
 export type ServerBridge<T> = {
-	Connect: (self: ServerBridge<T>, (player: Player, object: T) -> T?) -> (),
+	Connect: (
+		self: ServerBridge<T>,
+		(player: Player, object: T) -> T | (player: Player, object: T) -> () | (player: Player, object: T) -> nil
+	) -> (),
 	Fire: (self: ServerBridge<T>, target: ServerProcess.TPlayerType, object: T) -> (),
-	InboundMiddlewares: (self: ServerBridge<T>, { (player: Player, object: T) -> T? }) -> (),
-	OutboundMiddlewares: (self: ServerBridge<T>, { (target: ServerProcess.TPlayerType, object: T) -> T? }) -> (),
+	InboundMiddlewares: (
+		self: ServerBridge<T>,
+		{ (player: Player, object: T) -> T | (player: Player, object: T) -> () | (player: Player, object: T) -> nil }
+	) -> (),
+	OutboundMiddlewares: (
+		self: ServerBridge<T>,
+		{ (
+			target: ServerProcess.TPlayerType,
+			object: T
+		) -> T | (player: Player, object: T) -> () | (player: Player, object: T) -> nil }
+	) -> (),
 	Destroy: (self: ServerBridge<T>) -> (),
 }
 

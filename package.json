@@ -2,7 +2,7 @@
   "name": "bridgenet2",
   "version": "0.1.0",
   "description": "A networking library for Roblox with heavy focus on optimization",
-  "main": "index.js",
+  "main": "index.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ffrostflame/BridgeNet2.git"
