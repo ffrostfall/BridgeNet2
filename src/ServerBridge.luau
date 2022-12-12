@@ -112,10 +112,7 @@ function ServerBridge:Fire<T>(target: ServerProcess.TPlayerType, object: T)
 end
 
 function ServerBridge:Destroy()
-	for key, _ in self do
-		-- We don't have any complex instances in ServerBridge, so not much clean-up code is required.
-		self[key] = nil
-	end
+	table.clear(self)
 	setmetatable(self, nil)
 end
 
