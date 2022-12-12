@@ -1,3 +1,4 @@
+--!strict
 local ClientProcess = require(script.Parent.ClientProcess)
 local Identifiers = require(script.Parent.Identifiers)
 local Output = require(script.Parent.Output)
@@ -14,20 +15,24 @@ function ClientBridge._new(name: string)
 
 	-- Default max wait time is fine
 	self._identifier = Identifiers.ReferenceIdentifier(name)
+
 	ClientProcess._idIntoBridge(self._identifier)
 
-	self._inboundMiddlewares = {}
-	self._outboundMiddlewares = {}
+	self._name = name
+
+	-- Middleware
+	self._inboundMiddleware = {}
+	self._outboundMiddleware = {}
 
 	return self
 end
 
-function ClientBridge:InboundMiddlewares(middlewareTable: { (object: any) -> any })
-	self._inboundMiddlewares = middlewareTable
+function ClientBridge:InboundMiddleware(middlewareTable: { (object: any) -> any })
+	self._inboundMiddleware = middlewareTable
 end
 
-function ClientBridge:OutboundMiddlewares(middlewareTable: { (object: any) -> any })
-	self._outboundMiddlewares = middlewareTable
+function ClientBridge:OutboundMiddleware(middlewareTable: { (object: any) -> any })
+	self._outboundMiddleware = middlewareTable
 end
 
 function ClientBridge:Fire(object)
@@ -94,11 +99,11 @@ end
 export type ClientBridge<T> = {
 	Fire: (self: ClientBridge<T>, object: T) -> (),
 	Connect: (self: ClientBridge<T>, callback: (object: T) -> ()) -> (),
-	InboundMiddlewares: (
+	InboundMiddleware: (
 		self: ClientBridge<T>,
 		{ ((object: T) -> T) | ((object: T) -> ()) | ((object: T) -> nil) }
 	) -> (),
-	OutboundMiddlewares: (
+	OutboundMiddleware: (
 		self: ClientBridge<T>,
 		{ ((object: T) -> T) | ((object: T) -> ()) | ((object: T) -> nil) }
 	) -> (),

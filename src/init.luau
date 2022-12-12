@@ -1,3 +1,4 @@
+--!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
@@ -51,7 +52,7 @@ if isServer then
 		Output.warn(
 			"Duplicate dependency found. Either use Wally, a package manager for roblox, or centralize your packages so dependency duping doesn't occur,"
 		)
-		return require(exists.Value)
+		return require(exists.Value :: ModuleScript)
 	else
 		local value = Instance.new("ObjectValue")
 		value.Value = script
@@ -289,13 +290,13 @@ local ReturnValue = {
 		
 		@return ServerBridge | ClientBridge
 	]]
-	ReferenceBridge = (function()
+	ReferenceBridge = ((function()
 		if isServer then
-			return ServerBridge._new
+			return ServerBridge._new :: any
 		else
-			return ClientBridge._new
+			return ClientBridge._new :: any
 		end
-	end)() :: (name: string) -> (TClientBridge<any> | TServerBridge<any>),
+	end)() :: () -> any) :: (name: string) -> (TClientBridge<any> | TServerBridge<any>),
 
 	--[[
 		@function SetSecurity
@@ -306,7 +307,7 @@ local ReturnValue = {
 	]]
 	SetSecurity = function(
 		securityMeasure: ESecurityMeasures,
-		handler: (player: Player) -> () | (player: Player, num: number) -> ()
+		handler: (player: Player) -> () | (player: Player, num: number?) -> ()
 	)
 		Output.fatalAssert(isServer, "Cannot call SetSecurity from client")
 

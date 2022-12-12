@@ -1,4 +1,6 @@
+--!strict
 local RunService = game:GetService("RunService")
+
 type ESeverityLevel = "log" | "warn" | "error" | "fatal"
 type TOutputObject = {
 	Severity: ESeverityLevel,

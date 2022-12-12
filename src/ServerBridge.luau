@@ -1,3 +1,4 @@
+--!strict
 local ServerProcess = require(script.Parent.ServerProcess)
 local Identifiers = require(script.Parent.Identifiers)
 local Output = require(script.Parent.Output)
@@ -16,9 +17,13 @@ function ServerBridge._new(name: string)
 	-- Since this is the server, ReferenceIdentifier will not yield
 	self._identifier = Identifiers.ReferenceIdentifier(name)
 
-	self._inboundMiddlewares = nil
+	-- Middleware
+	self._outboundMiddleware = nil
+	self._inboundMiddleware = nil
+
 	self._name = name
 
+	-- Rate limiting
 	self._rateLimiting = false
 	self._maxRate = 500
 	self._rateMap = {}
@@ -32,11 +37,11 @@ function ServerBridge._new(name: string)
 end
 
 function ServerBridge:InboundMiddleware(middlewareTable: { (player: Player, object: any) -> any })
-	self._inboundMiddlewares = middlewareTable
+	self._inboundMiddleware = middlewareTable
 end
 
 function ServerBridge:OutboundMiddleware(middlewareTable: { (target: ServerProcess.TPlayerType, object: any) -> any })
-	self._outboundMiddlewares = middlewareTable
+	self._outboundMiddleware = middlewareTable
 end
 
 function ServerBridge:Connect<T>(callback: (player: Player, object: T) -> nil)
@@ -127,11 +132,11 @@ export type ServerBridge<T> =
 			((player: Player, object: T) -> ()) | ((player: Player, object: T) -> nil)
 		) -> (),
 		Fire: (self: ServerBridge<T>, target: ServerProcess.TPlayerType, object: T) -> (),
-		InboundMiddlewares: (
+		InboundMiddleware: (
 			self: ServerBridge<T>,
 			{ ((player: Player, object: T) -> T) | ((player: Player, object: T) -> ()) | ((player: Player, object: T) -> nil) }
 		) -> (),
-		OutboundMiddlewares: (
+		OutboundMiddleware: (
 			self: ServerBridge<T>,
 			{ ((target: ServerProcess.TPlayerType, object: T) -> T) | ((player: Player, object: T) -> ()) | ((player: Player, object: T) -> nil) }
 		) -> (),
