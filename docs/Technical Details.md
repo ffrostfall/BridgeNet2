@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 5
 ---
 
 # Technical Details
@@ -12,6 +12,8 @@ BridgeNet creates a few instances in the ReplicatedStorage root:
 		This is the folder that identifiers are passed through- it uses attributes to store them
 Don't touch any of these instances unless you know what you're doing. They can easily break BridgeNet2 if they're even slightly altered.
 
+It's worth noting that `Reference` functions (`ReferenceBridge` and `ReferenceIdentifier`) have very different behavior depending on if the caller is the client or the server. For example: `ReferenceIdentifier` can yield on the client, but will never yield on the server.
+
 ## Process
 - Thread reuse is utilized- this is why there's a few extra functions in the stack trace. Task.spawn is used over coroutine.resume because of
 continuations and intact stack traces, however there's a dramatic increase in speed. If you really need it, you can switch the task.spawn
@@ -21,7 +23,7 @@ to utilize coroutine.resume for extra performance, although note this will hide 
 ## ServerProcess
 - The format for server-to-client communication is as so: { [identifierName] = { {uniqueMessage}, {otherUniqueMessage} } }. While this
 does technically mean you can send strings through, you really shouldn't, although support for that may be added in the future.
-- Yes, that does mean that firing separate bridges has more overhead than firing the same bridge. Identifiers can be used to get around this, if you organize your netcode effectively. (the format in question: [identifierName] = {identifier, uniqueMessage} )
+- Yes, that does mean that firing separate bridges has more overhead than firing the same bridge. Identifiers can be used to get around this, if you organize your netcode effectively. (the format in question: [identifierName] = {identifier, uniqueMessage}, which is the format the predecessor to this library [BridgeNet] used. )
 
 ## ClientProcess
 - The format for client-to-server communication is as so: { [even] = "identifier", [odd] = {uniqueMessage} }. While it's two table.insert

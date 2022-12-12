@@ -12,6 +12,9 @@
 			},
 			"framework": {
 				"$path": "testing/framework"
+			},
+			"benches": {
+				"$path": "benchmarks"
 			}
 		},
 		"StarterPlayer": {

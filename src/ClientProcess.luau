@@ -66,6 +66,11 @@ function Client._startProcess()
 				for identifier, data in obj do
 					debug.profilebegin("fired: " .. #data)
 					local calls = callbackMap[identifier]
+
+					if not calls then
+						continue
+					end
+
 					if #calls == 1 then
 						local callback = calls[1]
 						for _, object in data do
@@ -91,7 +96,15 @@ function Client._startProcess()
 		debug.profileend()
 	end)
 
-	MetaRemoteEvent:FireServer("loaded")
+	task.spawn(function()
+		-- Wait 5 frames to let other scripts execute.
+		-- This is to let connections to bridges appear- there would be no point in the queueing functionality if BridgeNet2 loaded
+		-- before your connections could actually connect.
+		for _ = 1, 5 do
+			task.wait()
+		end
+		MetaRemoteEvent:FireServer("loaded")
+	end)
 
 	Output.log("Loaded")
 end

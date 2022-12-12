@@ -103,7 +103,6 @@ function Server._startProcess()
 
 		DataRemoteEvent.OnServerEvent:Connect(
 			function(plr, tbl) -- Do typechecking before inserting it into the queue- minimize errors in the queue.
-				print(tbl)
 				if typeof(tbl) ~= "table" then -- Invalid packet
 					incorrectTypeHandler(plr)
 					Output.warn(string.format(INVALID_PACKET_MESSAGE, plr.Name, plr.UserId))

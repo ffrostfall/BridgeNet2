@@ -4,6 +4,9 @@ local Output = require(script.Parent.Output)
 
 type TOptionalCallback<T> = (() -> T) | (() -> nil) | (() -> ())
 
+--[[
+	@class ServerBridge
+]]
 local ServerBridge = {}
 ServerBridge.__index = ServerBridge
 
@@ -117,24 +120,23 @@ function ServerBridge:Destroy()
 end
 
 -- () -> () means it returns void. Pretty neat trick I learned from Aloroider
-export type ServerBridge<T> = {
-	Connect: (
-		self: ServerBridge<T>,
-		(player: Player, object: T) -> T | (player: Player, object: T) -> () | (player: Player, object: T) -> nil
-	) -> (),
-	Fire: (self: ServerBridge<T>, target: ServerProcess.TPlayerType, object: T) -> (),
-	InboundMiddlewares: (
-		self: ServerBridge<T>,
-		{ (player: Player, object: T) -> T | (player: Player, object: T) -> () | (player: Player, object: T) -> nil }
-	) -> (),
-	OutboundMiddlewares: (
-		self: ServerBridge<T>,
-		{ (
-			target: ServerProcess.TPlayerType,
-			object: T
-		) -> T | (player: Player, object: T) -> () | (player: Player, object: T) -> nil }
-	) -> (),
-	Destroy: (self: ServerBridge<T>) -> (),
-}
+export type ServerBridge<T> =
+	{
+		Connect: (
+			self: ServerBridge<T>,
+			((player: Player, object: T) -> ()) | ((player: Player, object: T) -> nil)
+		) -> (),
+		Fire: (self: ServerBridge<T>, target: ServerProcess.TPlayerType, object: T) -> (),
+		InboundMiddlewares: (
+			self: ServerBridge<T>,
+			{ ((player: Player, object: T) -> T) | ((player: Player, object: T) -> ()) | ((player: Player, object: T) -> nil) }
+		) -> (),
+		OutboundMiddlewares: (
+			self: ServerBridge<T>,
+			{ ((target: ServerProcess.TPlayerType, object: T) -> T) | ((player: Player, object: T) -> ()) | ((player: Player, object: T) -> nil) }
+		) -> (),
+		RateLimit: (self: ServerBridge<T>, invokesPerSecond: number, overflowFunction: (player: Player) -> nil) -> (),
+		Destroy: (self: ServerBridge<T>) -> (),
+	}
 
 return ServerBridge

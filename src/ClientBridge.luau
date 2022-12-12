@@ -2,6 +2,9 @@ local ClientProcess = require(script.Parent.ClientProcess)
 local Identifiers = require(script.Parent.Identifiers)
 local Output = require(script.Parent.Output)
 
+--[[
+	@class ClientBridge
+]]
 local ClientBridge = {}
 ClientBridge.__index = ClientBridge
 
@@ -19,15 +22,20 @@ function ClientBridge._new(name: string)
 	return self
 end
 
-function ClientBridge:InboundMiddleware(middlewareTable: { (object: any) -> any })
+function ClientBridge:InboundMiddlewares(middlewareTable: { (object: any) -> any })
 	self._inboundMiddlewares = middlewareTable
 end
 
-function ClientBridge:OutboundMiddleware(middlewareTable: { (object: any) -> any })
+function ClientBridge:OutboundMiddlewares(middlewareTable: { (object: any) -> any })
 	self._outboundMiddlewares = middlewareTable
 end
 
 function ClientBridge:Fire(object)
+	Output.fatalAssert(
+		typeof(object) == "table",
+		string.format("ClientBridge:Fire takes a table, got %*", typeof(object))
+	)
+
 	if self._outboundMiddleware ~= nil then
 		local result = object
 
@@ -86,6 +94,14 @@ end
 export type ClientBridge<T> = {
 	Fire: (self: ClientBridge<T>, object: T) -> (),
 	Connect: (self: ClientBridge<T>, callback: (object: T) -> ()) -> (),
+	InboundMiddlewares: (
+		self: ClientBridge<T>,
+		{ ((object: T) -> T) | ((object: T) -> ()) | ((object: T) -> nil) }
+	) -> (),
+	OutboundMiddlewares: (
+		self: ClientBridge<T>,
+		{ ((object: T) -> T) | ((object: T) -> ()) | ((object: T) -> nil) }
+	) -> (),
 	Destroy: () -> (),
 }
 
