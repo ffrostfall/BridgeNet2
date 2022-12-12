@@ -68,7 +68,7 @@ local Server = {}
 function Server._startProcess()
 	task.spawn(function()
 		debug.setmemorycategory("BridgeNet2")
-		Output.log("Loading BridgeNet2")
+		Output.log("Loading")
 
 		local MetaRemoteEvent = Instance.new("RemoteEvent")
 		local DataRemoteEvent = Instance.new("RemoteEvent")
@@ -244,13 +244,14 @@ function Server._startProcess()
 						continue
 					end
 
-					if typeof(data[position + 1]) ~= "table" then
+					local passed = data[position + 1]
+					
+					if typeof(passed ) ~= "table" then
 						incorrectFormatHandler(plr)
 						Output.warn(string.format("Incorrect format from player: %*:%*", plr.Name, plr.UserId))
 						continue
 					end
 
-					local passed = data[position + 1]
 					for _, callback in callbackMap[value] do
 						RecycledSpawn(callback, plr, passed)
 					end
