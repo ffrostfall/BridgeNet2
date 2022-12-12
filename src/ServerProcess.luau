@@ -1,3 +1,5 @@
+--!strict
+
 ---@diagnostic disable: unused-local, unused-vararg
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -6,12 +8,10 @@ local RunService = game:GetService("RunService")
 local Output = require(script.Parent.Output)
 local TableKit = require(script.Parent.Parent.TableKit)
 
-export type TPlayerType = {
-	[number]: string | { Player },
-}
+export type TPlayerType = { string & { Player } }
 type TMetaMessage = "loaded"
-type TOutboundPacket = { [number]: { TPlayerType } | string | { any } }
-type TInboundPacket = { string | {} }
+type TOutboundPacket = { { TPlayerType } & string & { any } }
+type TInboundPacket = { string & {} }
 
 local INVALID_PACKET_MESSAGE =
 	"Player %*:%* sent an invalid packet. Likely exploiter- or something interacted with the internal BridgeNet API."
@@ -27,7 +27,7 @@ local loadingPlayersQueue: { [Player]: {}? } = {}
 local outboundQueue: { [number]: TOutboundPacket } = {}
 local inboundQueue: { [Player]: TInboundPacket? } = {}
 
-local callbackMap: { [string]: { () -> nil } } = {}
+local callbackMap: { [string]: { (...any) -> () } } = {}
 
 -- Placeholder functions
 local incorrectFormatHandler: (plr: Player) -> () = function(...)
@@ -40,7 +40,7 @@ local packetOverflowHandler: (plr: Player, number) -> () = function(...)
 	return ...
 end
 
-local freeThread -- Thread reusage
+local freeThread: thread? -- Thread reusage
 
 local function passer(fn, ...)
 	local acquiredThread = freeThread
@@ -56,11 +56,11 @@ local function yielder()
 end
 
 local function RecycledSpawn(fn, ...)
-	if not freeThread then
+	if freeThread == nil then
 		freeThread = coroutine.create(yielder)
-		coroutine.resume(freeThread)
+		coroutine.resume(freeThread :: thread)
 	end
-	task.spawn(freeThread, fn, ...)
+	task.spawn(freeThread :: thread, fn, ...)
 end
 
 local Server = {}
@@ -180,17 +180,6 @@ function Server._startProcess()
 									table.insert(sendStructure[plr][identifier], contents)
 								end
 							end
-						end
-					end
-				else
-					local plr = plrVal[2]
-					if not sendStructure[plr] then
-						sendStructure[plr] = { [identifier] = { contents } }
-					else
-						if not sendStructure[plr][identifier] then -- Reconciliation
-							sendStructure[plr][identifier] = { contents }
-						else
-							table.insert(sendStructure[plr][identifier], contents)
 						end
 					end
 				end

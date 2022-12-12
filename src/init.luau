@@ -1,3 +1,4 @@
+--!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
@@ -293,7 +294,8 @@ local ReturnValue = {
 		
 		@return ServerBridge | ClientBridge
 	]]
-	ReferenceBridge = if isServer then ServerBridge._new else ClientBridge._new,
+  
+	ReferenceBridge = (if isServer then ServerBridge._new else ClientBridge._new) :: () -> any) :: (name: string) -> (TClientBridge<any> | TServerBridge<any>),
 
 	--[[
 		@function SetSecurity
@@ -304,7 +306,7 @@ local ReturnValue = {
 	]]
 	SetSecurity = function(
 		securityMeasure: ESecurityMeasures,
-		handler: (player: Player) -> () | (player: Player, num: number) -> ()
+		handler: (player: Player) -> () | (player: Player, num: number?) -> ()
 	)
 		Output.fatalAssert(isServer, "Cannot call SetSecurity from client")
 
