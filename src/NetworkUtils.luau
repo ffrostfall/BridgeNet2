@@ -10,9 +10,12 @@ end
 
 function NetworkUtils.FromHex(toConvert: string): string
 	Output.fatalAssert(typeof(toConvert) == "string", string.format("FromHex takes string, got %*", typeof(toConvert)))
-	return string.gsub(toConvert, "..", function(cc)
-		return string.char(tonumber(cc, 16))
-	end) :: string
+	local len = #toConvert
+	local result = table.create(len/2)
+	for i=1, len, 2 do
+		result[(i + 1)/2] = tonumber(string.sub(toConvert, i, i + 1), 16)
+	end
+	return string.char(unpack(result))
 end
 
 function NetworkUtils.ToHex(toConvert: string): string
