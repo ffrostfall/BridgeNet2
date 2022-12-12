@@ -44,7 +44,7 @@ function Identifiers._testingMode() -- For testing w/ Hoarcekat and other simila
 	testingMode = true
 end
 
-function Identifiers.ReferenceIdentifier(name: string, maxWaitTime: number?): string?
+function Identifiers.ReferenceIdentifier(name: string, maxWaitTime: number?): string
 	Output.fatalAssert(
 		typeof(name) == "string",
 		string.format("ReferenceIdentifier takes string, got %*", typeof(name))
