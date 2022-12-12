@@ -39,25 +39,29 @@ export type TOutputObject = {
 	Text: string,
 }
 
--- Dependency dupe prevention
 if isServer then
 	Output.warnAssert(
 		script:IsDescendantOf(ReplicatedStorage),
 		"It is strongly recommended to put the BridgeNet module in ReplicatedStorage, where both the client and server can access it."
 	)
 
-	local exists = ReplicatedStorage:FindFirstChild("BridgeNet2") :: ObjectValue
-	if exists then
-		Output.warn(
-			"Duplicate dependency found. Either use Wally, a package manager for roblox, or centralize your packages so dependency duping doesn't occur,"
-		)
-		return require(exists.Value)
-	else
-		local value = Instance.new("ObjectValue")
-		value.Value = script
-		value.Name = "BridgeNet2"
-		value.Parent = ReplicatedStorage
+	-- Duplicate module check
+
+	-- Check for marker
+	for _, object in ReplicatedStorage:GetChildren() do
+		if object.Name == "BridgeNet2" and object:IsA("ObjectValue") then
+			Output.warn(
+				"Duplicate dependency found. Either use Wally, a package manager for roblox, or centralize your packages so dependency duping doesn't occur,"
+			)
+			return require(exists.Value)
+		end
 	end
+	
+	-- Add marker
+	local value = Instance.new("ObjectValue")
+	value.Value = script
+	value.Name = "BridgeNet2"
+	value.Parent = ReplicatedStorage
 end
 
 export type TClientBridge<T> = ClientBridge.ClientBridge<T>
