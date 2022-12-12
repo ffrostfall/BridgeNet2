@@ -53,7 +53,7 @@ if isServer then
 			Output.warn(
 				"Duplicate dependency found. Either use Wally, a package manager for roblox, or centralize your packages so dependency duping doesn't occur,"
 			)
-			return require(exists.Value)
+			return require(object.Value)
 		end
 	end
 	
