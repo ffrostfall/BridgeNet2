@@ -11,16 +11,17 @@ end
 
 function NetworkUtils.FromHex(toConvert: string): string
 	Output.fatalAssert(typeof(toConvert) == "string", string.format("FromHex takes string, got %*", typeof(toConvert)))
-	return string.gsub(toConvert, "..", function(cc)
-		return string.char(tonumber(cc, 16))
-	end) :: string
+	local len = #toConvert
+	local result = table.create(len/2)
+	for i = 1, len, 2 do
+		result[(i + 1)/2] = tonumber(string.sub(toConvert, i, i + 1), 16)
+	end
+	return string.char(unpack(result))
 end
 
 function NetworkUtils.ToHex(toConvert: string): string
 	Output.fatalAssert(typeof(toConvert) == "string", string.format("ToHex takes string, got %*", typeof(toConvert)))
-	return string.gsub(toConvert, ".", function(c)
-		return string.format("%02X", string.byte(c :: any))
-	end) :: string
+	return string.format(string.rep("%02X", #toConvert), string.byte(toConvert, 1, -1))
 end
 
 function NetworkUtils.ToReadableHex(toConvert: string): string
@@ -28,14 +29,13 @@ function NetworkUtils.ToReadableHex(toConvert: string): string
 		typeof(toConvert) == "string",
 		string.format("ToReadableHex takes string, got %*", typeof(toConvert))
 	)
-	return string.gsub(toConvert, ".", function(c)
-		return string.format("%02X ", string.byte(c :: any))
-	end) :: string
+	return string.format(string.rep("%02X ", #toConvert), string.byte(toConvert, 1, -1))
 end
 
 function NetworkUtils.NumberToBestForm(num: number): number | string
-	if string.len(tostring(num)) <= 7 then
-		return tostring(num)
+	local asString = tostring(num)
+	if #asString <= 7 then
+		return asString
 	else
 		return num
 	end
