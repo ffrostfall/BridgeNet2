@@ -289,13 +289,7 @@ local ReturnValue = {
 		
 		@return ServerBridge | ClientBridge
 	]]
-	ReferenceBridge = (function()
-		if isServer then
-			return ServerBridge._new
-		else
-			return ClientBridge._new
-		end
-	end)() :: (name: string) -> (TClientBridge<any> | TServerBridge<any>),
+	ReferenceBridge = if isServer then ServerBridge._new else ClientBridge._new,
 
 	--[[
 		@function SetSecurity
