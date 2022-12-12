@@ -51,7 +51,7 @@ if isServer then
 	for _, object in ReplicatedStorage:GetChildren() do
 		if object.Name == "BridgeNet2" and object:IsA("ObjectValue") then
 			Output.warn(
-				"Duplicate dependency found. Either use Wally, a package manager for roblox, or centralize your packages so dependency duping doesn't occur,"
+				"Duplicate dependency found. Centralize your packages so that dependency duping doesn't occur, or use Wally, a package manager for roblox."
 			)
 			return require(object.Value)
 		end
