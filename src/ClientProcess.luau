@@ -1,4 +1,5 @@
 --!strict
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
@@ -58,43 +59,41 @@ function Client._startProcess()
 			table.clear(outboundQueue)
 		end
 
-		debug.profileend()
+		debug.profileend() -- End BridgeNet2.Send profile
 
 		debug.profilebegin("BridgeNet2.Receive")
-		if #inboundQueue > 0 then
-			for _, obj in inboundQueue do
-				debug.profilebegin("packet")
-				for identifier, data in obj do
-					debug.profilebegin("fired: " .. #data)
-					local calls = callbackMap[identifier]
+		for i, obj in inboundQueue do
+			debug.profilebegin("packet")
+			for identifier, data in obj do
+				debug.profilebegin("fired: " .. #data)
+				local calls = callbackMap[identifier]
 
-					if not calls then
-						continue
+				if not calls then
+					continue
+				end
+
+				if #calls == 1 then
+					local callback = calls[1]
+					for _, object in data do
+						func = callback
+						RecycledSpawn(object)
 					end
-
-					if #calls == 1 then
-						local callback = calls[1]
-						for _, object in data do
+				else
+					for _, object in data do
+						for _, callback in calls do
 							func = callback
 							RecycledSpawn(object)
 						end
-					else
-						for _, object in data do
-							for _, callback in calls do
-								func = callback
-								RecycledSpawn(object)
-							end
-						end
 					end
-					debug.profileend()
 				end
-				debug.profileend()
+				debug.profileend() -- End fire events profile
 			end
-			table.clear(inboundQueue)
+			inboundQueue[i] = nil
+			debug.profileend() -- End packet profile
 		end
-		debug.profileend()
+		debug.profileend() -- End BridgeNet2.Receive profile
 
-		debug.profileend()
+		debug.profileend() -- End BridgeNet2 profile
 	end)
 
 	task.spawn(function()
@@ -104,7 +103,7 @@ function Client._startProcess()
 		for _ = 1, 5 do
 			task.wait()
 		end
-		MetaRemoteEvent:FireServer("loaded")
+		MetaRemoteEvent:FireServer("\1") -- Loaded
 	end)
 
 	Output.log("Loaded")
