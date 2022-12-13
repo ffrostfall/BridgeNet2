@@ -84,7 +84,6 @@ end
 
 function Output.fatalAssert(condition: boolean, info: string)
 	if not condition then
-		logSeverity(SEVERITY_LEVELS.Fatal, info)
 		Output.fatal(info)
 	end
 end
