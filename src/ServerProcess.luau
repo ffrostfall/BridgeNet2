@@ -246,7 +246,7 @@ function Server._startProcess()
 				end
 
 				-- data should be an array like {identifier, packet} repeating
-				local identifier
+				local identifier: string?
 				for _, value in data do
 					local valueType = typeof(value) -- string = identifier, table = packet
 
@@ -256,6 +256,11 @@ function Server._startProcess()
 					end
 
 					if valueType == "table" then
+						if not identifier then
+							incorrectFormatHandler(plr)
+							Output.warn(string.format("Incorrect format from player: %*:%*", plr.Name, plr.UserId))
+							break
+						end
 						for _, callback in callbackMap[identifier] do
 							RecycledSpawn(callback, plr, value)
 						end
@@ -266,6 +271,7 @@ function Server._startProcess()
 				end
 				if identifier then
 					-- Identifier left over that was not followed by a valid packet
+					incorrectFormatHandler(plr)
 					Output.warn(string.format("Incorrect format from player: %*:%*", plr.Name, plr.UserId))
 				end
 
