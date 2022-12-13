@@ -9,18 +9,18 @@ local Output = require(script.Parent.Output)
 local TableKit = require(script.Parent.Parent.TableKit)
 
 export type TPlayerType = { string & { Player } }
-type TMetaMessage = "loaded"
+
 type TOutboundPacket = { { TPlayerType } & string & { any } }
 type TInboundPacket = { string & {} }
 
 local INVALID_PACKET_MESSAGE =
 	"Player %*:%* sent an invalid packet. Likely exploiter- or something interacted with the internal BridgeNet API."
+local INVALID_META_MESSAGE =
+	"Player %*:%* sent an invalid meta message. Likely exploiter- or something interacted with the internal BridgeNet API."
 local PACKET_LIMIT_OVERFLOW =
 	"Player %*:%* has reached the packet limit of 12. Likely exploiter- or you're firing more than 12 times in the same frame."
 
-local isServer = RunService:IsServer()
-
-local playerList: { [Player]: boolean? } = {}
+local playerList: { [Player]: boolean } = {}
 local loadingPlayers: { [Player]: number? } = {}
 local loadingPlayersQueue: { [Player]: {}? } = {}
 
@@ -30,15 +30,17 @@ local inboundQueue: { [Player]: TInboundPacket? } = {}
 local callbackMap: { [string]: { (...any) -> () } } = {}
 
 -- Placeholder functions
-local incorrectFormatHandler: (plr: Player) -> () = function(...)
-	return ...
-end
-local incorrectTypeHandler: (plr: Player) -> () = function(...)
-	return ...
-end
-local packetOverflowHandler: (plr: Player, number) -> () = function(...)
-	return ...
-end
+type incorrectFormatHandler = (plr: Player) -> ()
+local incorrectFormatHandler: incorrectFormatHandler = function() end
+
+type incorrectTypeHandler = (plr: Player) -> ()
+local incorrectTypeHandler: incorrectTypeHandler = function() end
+
+type packetOverflowHandler = (plr: Player, packetCount: number) -> ()
+local packetOverflowHandler: packetOverflowHandler = function() end
+
+type incorrectMetaHandler = (plr: Player) -> ()
+local incorrectMetaHandler: incorrectMetaHandler = function() end
 
 local freeThread: thread? -- Thread reusage
 
@@ -61,6 +63,10 @@ local function RecycledSpawn(fn, ...)
 		coroutine.resume(freeThread :: thread)
 	end
 	task.spawn(freeThread :: thread, fn, ...)
+end
+
+local assertServer = if RunService:IsServer() then function() end else function(message)
+	Output.fatal(message)
 end
 
 local Server = {}
@@ -93,16 +99,27 @@ function Server._startProcess()
 			inboundQueue[plr] = nil
 		end)
 
-		MetaRemoteEvent.OnServerEvent:Connect(function(plr, meta: TMetaMessage)
-			if meta == "loaded" then -- Different meta messages for the future
+		MetaRemoteEvent.OnServerEvent:Connect(function(plr, meta)
+			if meta == "\1" then
 				loadingPlayers[plr] = nil
-				DataRemoteEvent:FireClient(plr, loadingPlayersQueue[plr])
-				loadingPlayersQueue[plr] = nil
+
+				local queued = loadingPlayersQueue[plr]
+				if queued then
+					DataRemoteEvent:FireClient(plr, queued)
+					loadingPlayersQueue[plr] = nil
+				end
+				--elseif meta == "\2" then
+				-- Different meta messages for the future
+			else
+				incorrectMetaHandler(plr)
+				Output.warn(string.format(INVALID_META_MESSAGE, plr.Name, plr.UserId))
 			end
 		end)
 
 		DataRemoteEvent.OnServerEvent:Connect(
-			function(plr, tbl) -- Do typechecking before inserting it into the queue- minimize errors in the queue.
+			function(plr, tbl)
+				-- Do typechecking before inserting it into the queue- minimize errors in the queue.
+
 				if typeof(tbl) ~= "table" then -- Invalid packet
 					incorrectTypeHandler(plr)
 					Output.warn(string.format(INVALID_PACKET_MESSAGE, plr.Name, plr.UserId))
@@ -110,12 +127,14 @@ function Server._startProcess()
 				end
 
 				for _, v: TInboundPacket in tbl do
-					if typeof(v) ~= "table" and typeof(v) ~= "string" then
+					local vType = typeof(v)
+					if vType ~= "table" and vType ~= "string" then
 						incorrectTypeHandler(plr)
 						Output.warn(string.format(INVALID_PACKET_MESSAGE, plr.Name, plr.UserId))
 						return
 					end
 
+					-- Insert
 					table.insert(inboundQueue[plr], v)
 				end
 			end
@@ -131,46 +150,30 @@ function Server._startProcess()
 				local plrVal: { TPlayerType } = outbound[1]
 				local identifier: string = outbound[2]
 				local contents: { any } = outbound[3]
-
-				if typeof(plrVal[1]) == "string" then
-					if plrVal[1] == "all" then -- Who to send the payload to
-						for plr in playerList do
-							if not sendStructure[plr] then -- If a structure doesn't exist for that player, create one
-								sendStructure[plr] = { [identifier] = { contents } }
+				
+				-- Get who to send the payload to
+				--if typeof(plrVal[1]) == "string" then
+				if plrVal[1] == "all" then
+					for plr in playerList do
+						if not sendStructure[plr] then -- If a structure doesn't exist for that player, create one
+							sendStructure[plr] = { [identifier] = { contents } }
+						else
+							-- If a structure doesn't exist for that identifier,
+							-- create one
+							if not sendStructure[plr][identifier] then
+								sendStructure[plr][identifier] = { contents }
 							else
-								-- If a structure doesn't exist for that identifier,
-								-- create one
-								if not sendStructure[plr][identifier] then
-									sendStructure[plr][identifier] = { contents }
-								else
-									table.insert(sendStructure[plr][identifier], contents)
-								end
+								table.insert(sendStructure[plr][identifier], contents)
 							end
 						end
-					elseif plrVal[1] == "except" then
-						for _, plr in plrVal[2] do -- Set every single blacklisted player to false
-							playerList[plr] = false
-						end
+					end
+				elseif plrVal[1] == "except" then
+					for _, plr in plrVal[2] do -- Set every single blacklisted player to false
+						playerList[plr] = false
+					end
 
-						for plr, give in playerList do
-							if give == true then -- Put the payload in every single players data, **if** they're not blacklisted
-								if not sendStructure[plr] then
-									sendStructure[plr] = { [identifier] = { contents } }
-								else
-									if not sendStructure[plr][identifier] then
-										sendStructure[plr][identifier] = { contents }
-									else
-										table.insert(sendStructure[plr][identifier], contents)
-									end
-								end
-							else
-								playerList[plr] = true
-							end
-						end
-						-- Code execution is completely linear, so this is an ultra-fast way of doing blacklisted players
-						-- in huge servers.
-					elseif plrVal[1] == "set" then
-						for _, plr in plrVal[2] do
+					for plr, give in playerList do
+						if give == true then -- Put the payload in every single players data, **if** they're not blacklisted
 							if not sendStructure[plr] then
 								sendStructure[plr] = { [identifier] = { contents } }
 							else
@@ -180,25 +183,48 @@ function Server._startProcess()
 									table.insert(sendStructure[plr][identifier], contents)
 								end
 							end
+						else
+							playerList[plr] = true
+						end
+					end
+					-- Code execution is completely linear, so this is an ultra-fast way of doing blacklisted players
+					-- in huge servers.
+				elseif plrVal[1] == "set" then
+					for _, plr in plrVal[2] do
+						if not sendStructure[plr] then
+							sendStructure[plr] = { [identifier] = { contents } }
+						else
+							if not sendStructure[plr][identifier] then
+								sendStructure[plr][identifier] = { contents }
+							else
+								table.insert(sendStructure[plr][identifier], contents)
+							end
 						end
 					end
 				end
+				--end
 			end
 
 			for plr, toSend in sendStructure do
-				if loadingPlayers[plr] then -- Detect if player isn't loaded yet. If not, queue the call.
-					if loadingPlayersQueue[plr] == nil then
+				if loadingPlayers[plr] then
+					-- Isn't loaded yet, queue the call.
+					local queuedRemotes = loadingPlayersQueue[plr]
+					if queuedRemotes == nil then
+						-- Create a queue
 						loadingPlayersQueue[plr] = toSend
 					else
+						-- Add to queue
 						for identifier, value in toSend do
-							if loadingPlayersQueue[plr][identifier] == nil then -- Reconciliation
-								loadingPlayersQueue[plr][identifier] = value
+							local queuedPackets = queuedRemotes[identifier]
+							if queuedPackets == nil then -- Reconciliation
+								queuedRemotes[identifier] = value
 							else
-								TableKit.MergeArray(loadingPlayersQueue[plr][identifier], value)
+								TableKit.MergeArray(queuedPackets, value)
 							end
 						end
 					end
 				else
+					-- Already loaded, send the data.
 					DataRemoteEvent:FireClient(plr, toSend)
 				end
 
@@ -212,41 +238,38 @@ function Server._startProcess()
 			debug.profilebegin("BridgeNet2.receive")
 
 			for plr, data in inboundQueue do
-				if #data >= 12 then
-					packetOverflowHandler(plr, #data)
+				local dataLen = #data
+				if dataLen >= 12 then
+					packetOverflowHandler(plr, dataLen)
 					Output.warn(string.format(PACKET_LIMIT_OVERFLOW, plr.Name, plr.UserId))
 					continue
 				end
 
-				local skip = false
-				for position, value in data do
-					-- Got skipped because last one was an identifier
-					if skip == true then
-						skip = false
+				-- data should be an array like {identifier, packet} repeating
+				local identifier
+				for _, value in data do
+					local valueType = typeof(value) -- string = identifier, table = packet
+
+					if valueType == "string" then
+						identifier = value
 						continue
 					end
-					if typeof(value) == "string" then
-						skip = true
+
+					if valueType == "table" then
+						for _, callback in callbackMap[identifier] do
+							RecycledSpawn(callback, plr, value)
+						end
+						identifier = nil
 					else
-						incorrectFormatHandler(plr)
-						Output.warn(string.format("Incorrect format from player: %*:%*", plr.Name, plr.UserId))
-						continue
-					end
-
-					local passed = data[position + 1]
-					
-					if typeof(passed ) ~= "table" then
-						incorrectFormatHandler(plr)
-						Output.warn(string.format("Incorrect format from player: %*:%*", plr.Name, plr.UserId))
-						continue
-					end
-
-					for _, callback in callbackMap[value] do
-						RecycledSpawn(callback, plr, passed)
+						break
 					end
 				end
+				if identifier then
+					-- Identifier left over that was not followed by a valid packet
+					Output.warn(string.format("Incorrect format from player: %*:%*", plr.Name, plr.UserId))
+				end
 
-				table.clear(inboundQueue[plr])
+				table.clear(data)
 			end
 
 			-- End BridgeNet2 receive profile
@@ -268,7 +291,7 @@ function Server._addToQueue(plrs: TPlayerType, identifier: string, payload: { [a
 	})
 end
 
-function Server._incorrectFormatHandler(func: (plr: Player) -> ())
+function Server._incorrectFormatHandler(func: incorrectFormatHandler)
 	Output.fatalAssert(
 		typeof(func) == "function",
 		string.format("incorrectFormatHandler takes a function, got %*", typeof(func))
@@ -276,7 +299,7 @@ function Server._incorrectFormatHandler(func: (plr: Player) -> ())
 	incorrectFormatHandler = func
 end
 
-function Server._incorrectTypeHandler(func: (plr: Player) -> ())
+function Server._incorrectTypeHandler(func: incorrectTypeHandler)
 	Output.fatalAssert(
 		typeof(func) == "function",
 		string.format("incorrectTypeHandler takes a function, got %*", typeof(func))
@@ -284,12 +307,20 @@ function Server._incorrectTypeHandler(func: (plr: Player) -> ())
 	incorrectTypeHandler = func
 end
 
-function Server._packetOverflowHandler(func: (plr: Player, num: number) -> ())
+function Server._packetOverflowHandler(func: packetOverflowHandler)
 	Output.fatalAssert(
 		typeof(func) == "function",
 		string.format("packetOverflowHandler takes a function, got %*", typeof(func))
 	)
 	packetOverflowHandler = func
+end
+
+function Server._packetMetaHandler(func: incorrectMetaHandler)
+	Output.fatalAssert(
+		typeof(func) == "function",
+		string.format("incorrectMetaHandler takes a function, got %*", typeof(func))
+	)
+	incorrectMetaHandler = func
 end
 
 function Server._idIntoBridge(identifier: string)
@@ -301,24 +332,24 @@ function Server._connect(identifier: string, callback: (player: Player, object: 
 end
 
 function Server.AllPlayers(): TPlayerType
-	Output.fatalAssert(isServer, "Cannot call .AllPlayers() from client")
+	assertServer("Cannot call .AllPlayers() from client")
 	return { "all" }
 end
 
 function Server.PlayersExcept(blacklistedPlayers: { Player }): TPlayerType
-	Output.fatalAssert(isServer, "Cannot call .AllPlayers() from client")
+	assertServer("Cannot call .PlayersExcept() from client")
 	Output.fatalAssert(
-		typeof(blacklistedPlayers) == "table",
-		string.format("PlayersExcept takes an array of players, got %*", typeof(blacklistedPlayers))
+		typeof(blacklistedPlayers) == "table" and TableKit.IsArray(blacklistedPlayers),
+		string.format("PlayersExcept takes an array of players, got <%*> %*", typeof(blacklistedPlayers), blacklistedPlayers)
 	)
 	return { "except", blacklistedPlayers }
 end
 
 function Server.Players(setOfPlayers: { Player }): TPlayerType
-	Output.fatalAssert(isServer, "Cannot call .AllPlayers() from client")
+	assertServer("Cannot call .Players() from client")
 	Output.fatalAssert(
-		typeof(setOfPlayers) == "table",
-		string.format("Players takes an array of players, got %*", typeof(setOfPlayers))
+		typeof(setOfPlayers) == "table" and TableKit.IsArray(setOfPlayers),
+		string.format("Players takes an array of players, got <%*> %*", typeof(setOfPlayers), setOfPlayers)
 	)
 	return { "set", setOfPlayers }
 end
