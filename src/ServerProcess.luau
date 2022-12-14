@@ -261,7 +261,12 @@ function Server._startProcess()
 							Output.warn(string.format("Incorrect format from player: %*:%*", plr.Name, plr.UserId))
 							break
 						end
-						for _, callback in callbackMap[identifier] do
+						local callbacks = callbackMap[identifier]
+						if not callbacks then
+							identifier = nil
+							continue
+						end
+						for _, callback in callbacks do
 							RecycledSpawn(callback, plr, value)
 						end
 						identifier = nil
