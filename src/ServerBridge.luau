@@ -60,11 +60,11 @@ function ServerBridge:Connect<T>(callback: (player: Player, object: T) -> nil)
 			end
 		end
 
-		if self._inboundMiddlewares ~= nil then
+		if self._inboundMiddleware ~= nil then
 			local result = object
 
 			-- Loop through the middleware functions- raise a silent log if any of them return nil for debugging.
-			for _, middlewareFunction: (player: Player, object: any) -> any in self._inboundMiddlewares do
+			for _, middlewareFunction: (player: Player, object: any) -> any in self._inboundMiddleware do
 				result = middlewareFunction(player, result)
 					or (
 						Output.silent(
@@ -98,7 +98,7 @@ function ServerBridge:Fire<T>(target: ServerProcess.TPlayerType, object: T)
 		local result = object
 
 		-- Loop through the middleware functions- raise a silent log if any of them return nil for debugging.
-		for _, middlewareFunction: (player: ServerProcess.TPlayerType, object: any) -> any in self._outboundMiddlewares do
+		for _, middlewareFunction: (player: ServerProcess.TPlayerType, object: any) -> any in self._outboundMiddleware do
 			result = middlewareFunction(result)
 				or (
 					Output.silent(
