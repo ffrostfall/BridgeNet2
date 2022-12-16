@@ -45,7 +45,7 @@ function ClientBridge:Fire(object)
 		local result = object
 
 		-- Loop through the middleware functions- raise a silent log if any of them return nil for debugging.
-		for _, middlewareFunction: (object: any) -> any in self._outboundMiddlewares do
+		for _, middlewareFunction: (object: any) -> any in self._outboundMiddleware do
 			result = middlewareFunction(result)
 				or (
 					Output.silent(
@@ -65,11 +65,11 @@ end
 
 function ClientBridge:Connect(callback: (object: any) -> ())
 	ClientProcess._connect(self._identifier, function(object)
-		if self._inboundMiddlewares ~= nil then
+		if self._inboundMiddleware ~= nil then
 			local result = object
 
 			-- Loop through the middleware functions- raise a silent log if any of them return nil for debugging.
-			for _, middlewareFunction: (player: Player, object: any) -> any in self._inboundMiddlewares do
+			for _, middlewareFunction: (player: Player, object: any) -> any in self._inboundMiddleware do
 				result = middlewareFunction(result)
 					or (
 						Output.silent(
