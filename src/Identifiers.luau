@@ -67,7 +67,7 @@ function Identifiers.ReferenceIdentifier(name: string, maxWaitTime: number?): st
 	end
 
 	if RunService:IsServer() then
-		Output.fatalAssert(identifierCount < 1114111, "cannot create any more identifiers - over 1114111 cap.")
+		Output.fatalAssert(identifierCount <= 1114111, "cannot create any more identifiers - over 1114111 cap.")
 		Output.silent(string.format("creating identifier: %*, identifier count: %*", name, identifierCount))
 
 		local packed = utf8.char(identifierCount)
