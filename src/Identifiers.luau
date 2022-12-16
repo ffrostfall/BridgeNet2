@@ -67,12 +67,11 @@ function Identifiers.ReferenceIdentifier(name: string, maxWaitTime: number?): st
 	end
 
 	if RunService:IsServer() then
-		-- 2^16 is the number of combinations in 2 bytes
-		Output.warnAssert(identifierCount < (2 ^ 16), "cannot create any more identifiers, over 2^16 cap.")
+		Output.fatalAssert(identifierCount < 1114111, "cannot create any more identifiers - over 1114111 cap.")
 		Output.silent(string.format("creating identifier: %*, identifier count: %*", name, identifierCount))
 
+		local packed = utf8.char(identifierCount)
 		identifierCount += 1
-		local packed: string = string.pack("B", identifierCount)
 		IdentifierStorage:SetAttribute(name, packed)
 
 		fullIdentifierMap[name] = packed
