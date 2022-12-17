@@ -11,7 +11,7 @@ local inboundQueue: { { [string]: { { [any]: any } } } } = {}
 
 local callbackMap: { [string]: { (object: any) -> () } } = {}
 
-local freeThread -- Thread reusage
+local freeThread: thread? -- Thread reusage
 local func = nil
 
 local function passer(payload)
@@ -28,11 +28,11 @@ local function yielder()
 end
 
 local function RecycledSpawn(payload)
-	if not freeThread then
+	if freeThread == nil then
 		freeThread = coroutine.create(yielder)
 		coroutine.resume(freeThread)
 	end
-	coroutine.resume(freeThread, payload)
+	task.spawn(freeThread :: thread, payload)
 end
 
 local Client = {}

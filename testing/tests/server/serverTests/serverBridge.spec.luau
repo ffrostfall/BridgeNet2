@@ -43,9 +43,7 @@ return {
 		local bridge = BridgeNet2.ReferenceBridge("bridge")
 
 		expect(function()
-			bridge:RateLimit(2, function(player)
-				
-			end)
+			bridge:RateLimit(2, function(player) end)
 		end).to.never.throw()
 	end,
 }

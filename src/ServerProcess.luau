@@ -8,10 +8,22 @@ local RunService = game:GetService("RunService")
 local Output = require(script.Parent.Output)
 local TableKit = require(script.Parent.Parent.TableKit)
 
-export type TPlayerType = { string & { Player } }
+export type TPlayerType = {
+	type: "set",
+	plrVal: (Player | { Player }),
+} | {
+	type: "all",
+} | {
+	type: "except",
+	plrVal: (Player | { Player }),
+}
 type TMetaMessage = "loaded"
-type TOutboundPacket = { { TPlayerType } & string & { any } }
-type TInboundPacket = { string & {} }
+type TOutboundPacket = {
+	plrs: TPlayerType,
+	id: string,
+	payload: { any },
+}
+type TInboundPacket = { string | {} }
 
 local INVALID_PACKET_MESSAGE =
 	"Player %*:%* sent an invalid packet. Likely exploiter- or something interacted with the internal BridgeNet API."
@@ -128,49 +140,31 @@ function Server._startProcess()
 			debug.profilebegin("BridgeNet2.send")
 
 			for _, outbound: TOutboundPacket in outboundQueue do
-				local plrVal: { TPlayerType } = outbound[1]
-				local identifier: string = outbound[2]
-				local contents: { any } = outbound[3]
+				local plrVal: TPlayerType = outbound.plrs
+				local identifier: string = outbound.id
+				local contents: { any } = outbound.payload
 
-				if typeof(plrVal[1]) == "string" then
-					if plrVal[1] == "all" then -- Who to send the payload to
-						for plr in playerList do
-							if not sendStructure[plr] then -- If a structure doesn't exist for that player, create one
-								sendStructure[plr] = { [identifier] = { contents } }
+				if plrVal.type == "all" then -- Who to send the payload to
+					for plr in playerList do
+						if not sendStructure[plr] then -- If a structure doesn't exist for that player, create one
+							sendStructure[plr] = { [identifier] = { contents } }
+						else
+							-- If a structure doesn't exist for that identifier,
+							-- create one
+							if not sendStructure[plr][identifier] then
+								sendStructure[plr][identifier] = { contents }
 							else
-								-- If a structure doesn't exist for that identifier,
-								-- create one
-								if not sendStructure[plr][identifier] then
-									sendStructure[plr][identifier] = { contents }
-								else
-									table.insert(sendStructure[plr][identifier], contents)
-								end
+								table.insert(sendStructure[plr][identifier], contents)
 							end
 						end
-					elseif plrVal[1] == "except" then
-						for _, plr in plrVal[2] do -- Set every single blacklisted player to false
-							playerList[plr] = false
-						end
+					end
+				elseif plrVal.type == "except" then
+					for _, plr in plrVal.plrVal :: { Player } do -- Set every single blacklisted player to false
+						playerList[plr] = false
+					end
 
-						for plr, give in playerList do
-							if give == true then -- Put the payload in every single players data, **if** they're not blacklisted
-								if not sendStructure[plr] then
-									sendStructure[plr] = { [identifier] = { contents } }
-								else
-									if not sendStructure[plr][identifier] then
-										sendStructure[plr][identifier] = { contents }
-									else
-										table.insert(sendStructure[plr][identifier], contents)
-									end
-								end
-							else
-								playerList[plr] = true
-							end
-						end
-						-- Code execution is completely linear, so this is an ultra-fast way of doing blacklisted players
-						-- in huge servers.
-					elseif plrVal[1] == "set" then
-						for _, plr in plrVal[2] do
+					for plr, give in playerList do
+						if give == true then -- Put the payload in every single players data, **if** they're not blacklisted
 							if not sendStructure[plr] then
 								sendStructure[plr] = { [identifier] = { contents } }
 							else
@@ -179,6 +173,22 @@ function Server._startProcess()
 								else
 									table.insert(sendStructure[plr][identifier], contents)
 								end
+							end
+						else
+							playerList[plr] = true
+						end
+					end
+					-- Code execution is completely linear, so this is an ultra-fast way of doing blacklisted players
+					-- in huge servers.
+				elseif plrVal.type == "set" then
+					for _, plr in plrVal.plrVal :: { Player } do
+						if not sendStructure[plr] then
+							sendStructure[plr] = { [identifier] = { contents } }
+						else
+							if not sendStructure[plr][identifier] then
+								sendStructure[plr][identifier] = { contents }
+							else
+								table.insert(sendStructure[plr][identifier], contents)
 							end
 						end
 					end
@@ -234,8 +244,8 @@ function Server._startProcess()
 					end
 
 					local passed = data[position + 1]
-					
-					if typeof(passed ) ~= "table" then
+
+					if typeof(passed) ~= "table" then
 						incorrectFormatHandler(plr)
 						Output.warn(string.format("Incorrect format from player: %*:%*", plr.Name, plr.UserId))
 						continue
@@ -262,9 +272,9 @@ end
 
 function Server._addToQueue(plrs: TPlayerType, identifier: string, payload: { [any]: any })
 	table.insert(outboundQueue, {
-		plrs,
-		identifier,
-		payload,
+		plrs = plrs,
+		id = identifier,
+		payload = payload,
 	})
 end
 
@@ -302,25 +312,25 @@ end
 
 function Server.AllPlayers(): TPlayerType
 	Output.fatalAssert(isServer, "Cannot call .AllPlayers() from client")
-	return { "all" }
+	return { type = "all" }
 end
 
 function Server.PlayersExcept(blacklistedPlayers: { Player }): TPlayerType
 	Output.fatalAssert(isServer, "Cannot call .AllPlayers() from client")
-	Output.fatalAssert(
+	--[[Output.fatalAssert(
 		typeof(blacklistedPlayers) == "table",
 		string.format("PlayersExcept takes an array of players, got %*", typeof(blacklistedPlayers))
-	)
-	return { "except", blacklistedPlayers }
+	)]]
+	return { type = "except", plrVal = blacklistedPlayers }
 end
 
 function Server.Players(setOfPlayers: { Player }): TPlayerType
 	Output.fatalAssert(isServer, "Cannot call .AllPlayers() from client")
-	Output.fatalAssert(
+	--[[Output.fatalAssert(
 		typeof(setOfPlayers) == "table",
 		string.format("Players takes an array of players, got %*", typeof(setOfPlayers))
-	)
-	return { "set", setOfPlayers }
+	)]]
+	return { type = "set", plrVal = setOfPlayers }
 end
 
 return Server

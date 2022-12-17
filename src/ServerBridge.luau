@@ -93,13 +93,13 @@ function ServerBridge:DisableRateLimit()
 	self._rateLimiting = false
 end
 
-function ServerBridge:Fire<T>(target: ServerProcess.TPlayerType, object: T)
+function ServerBridge:Fire<T>(target: ServerProcess.TPlayerType, object: T & {})
 	if self._outboundMiddleware ~= nil then
 		local result = object
 
 		-- Loop through the middleware functions- raise a silent log if any of them return nil for debugging.
 		for _, middlewareFunction: (player: ServerProcess.TPlayerType, object: any) -> any in self._outboundMiddlewares do
-			result = middlewareFunction(result)
+			result = middlewareFunction(target, result)
 				or (
 					Output.silent(
 						string.format(

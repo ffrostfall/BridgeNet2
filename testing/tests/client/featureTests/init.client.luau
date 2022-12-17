@@ -3,27 +3,30 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local BridgeNet2 = require(ReplicatedStorage.Packages.bridgenet2)
 
 local bridge: BridgeNet2.TClientBridge<{
-	TestField: number,
+	TestField: string,
 }> = BridgeNet2.ReferenceBridge("tester")
 
-bridge:OutboundMiddlewares({
+bridge:OutboundMiddleware({
 	function(obj)
 		print("should print every fire")
 		return obj
 	end,
 })
 
-bridge:InboundMiddlewares({
+bridge:InboundMiddleware({
 	function(obj)
-		print("should print every fire")
+		print("should print every receive")
 		return obj
 	end,
 })
+
+bridge:Connect(function(object)
+	print(object.TestField)
+end)
 
 while true do
-	print("firing once")
 	bridge:Fire({
-		TestField = 5,
+		TestField = "server pass",
 	})
 
 	task.wait(1)

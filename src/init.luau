@@ -54,10 +54,10 @@ if isServer then
 			Output.warn(
 				"Duplicate dependency found. Centralize your packages so that dependency duping doesn't occur, or use Wally, a package manager for roblox."
 			)
-			return require(object.Value)
+			return require(object.Value :: ModuleScript)
 		end
 	end
-	
+
 	-- Add marker
 	local value = Instance.new("ObjectValue")
 	value.Value = script
@@ -294,8 +294,10 @@ local ReturnValue = {
 		
 		@return ServerBridge | ClientBridge
 	]]
-  
-	ReferenceBridge = (if isServer then ServerBridge._new else ClientBridge._new) :: () -> any) :: (name: string) -> (TClientBridge<any> | TServerBridge<any>),
+
+	ReferenceBridge = (
+			((if isServer then ServerBridge._new else ClientBridge._new) :: any) :: () -> any
+		) :: (name: string) -> (TClientBridge<any> | TServerBridge<any>),
 
 	--[[
 		@function SetSecurity

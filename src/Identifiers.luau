@@ -50,16 +50,15 @@ function Identifiers.ReferenceIdentifier(name: string, maxWaitTime: number?): st
 		typeof(name) == "string",
 		string.format("ReferenceIdentifier takes string, got %*", typeof(name))
 	)
-	
-	if maxWaitTime == nil then
-		maxWaitTime = 1
-	else
+
+	if maxWaitTime ~= nil then
 		Output.fatalAssert(
 			typeof(maxWaitTime) == "number",
 			string.format("ReferenceIdentifier second arg maxWaitTime takes number, got %*", typeof(name))
 		)
 	end
-	
+	local maxWaitTimeArg = maxWaitTime or 1
+
 	if testingMode then
 		fullIdentifierMap[name] = name
 		compressedIdentifierMap[name] = name
@@ -81,14 +80,14 @@ function Identifiers.ReferenceIdentifier(name: string, maxWaitTime: number?): st
 		return packed
 	else
 		local waitingTime = 0
-		
+
 		while true do
 			local identifier = fullIdentifierMap[name]
 			if identifier then
 				return identifier
 			end
 			waitingTime += task.wait()
-			if waitingTime >= maxWaitTime then
+			if waitingTime >= maxWaitTimeArg then
 				Output.warn(string.format("reached max wait time for identifier %*, broke yield.", name))
 				return ""
 			end

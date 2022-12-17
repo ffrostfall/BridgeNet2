@@ -13,17 +13,21 @@
 			"StressTestValue": {
 				"$className": "StringValue",
 				"$properties": {
-					"Value": "BridgeNet2"
+					"Value": "bridgenet2"
 				}
 			}
 		},
 		"StarterPlayer": {
 			"StarterPlayerScripts": {
-				"$path": "testing/stress/client"
+				"stress": {
+					"$path": "testing/stress/client"
+				}
 			}
 		},
 		"ServerScriptService": {
-			"$path": "testing/stress/server"
+			"stress": {
+				"$path": "testing/stress/server"
+			}
 		}
 	}
 }
