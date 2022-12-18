@@ -35,11 +35,8 @@ function ClientBridge:OutboundMiddleware(middlewareTable: { (object: any) -> any
 	self._outboundMiddleware = middlewareTable
 end
 
-function ClientBridge:Fire(object)
-	Output.fatalAssert(
-		typeof(object) == "table",
-		string.format("ClientBridge:Fire takes a table, got %*", typeof(object))
-	)
+function ClientBridge:Fire(...: any)
+	local object = {...}
 
 	if self._outboundMiddleware ~= nil then
 		local result = object
