@@ -23,8 +23,8 @@ if isServer then
 else
 	-- Server should add the tag, we will just wait for it
 	local module = CollectionService:GetTagged("BridgeNet2")[1] or CollectionService:GetInstanceAddedSignal("BridgeNet2"):Wait()
-	assert(module:IsA("ModuleScript"))
 	if module ~= script then
+		assert(module:IsA("ModuleScript"))
 		return require(module)
 	end
 end
