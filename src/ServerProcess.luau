@@ -33,11 +33,11 @@ local PACKET_LIMIT_OVERFLOW =
 local isServer = RunService:IsServer()
 
 local playerList: { [Player]: boolean } = {}
-local loadingPlayers: { [Player]: number? } = {}
-local loadingPlayersQueue: { [Player]: {}? } = {}
+local loadingPlayers: { [Player]: number } = {}
+local loadingPlayersQueue: { [Player]: {} } = {}
 
 local outboundQueue: { [number]: TOutboundPacket } = {}
-local inboundQueue: { [Player]: TInboundPacket? } = {}
+local inboundQueue: { [Player]: TInboundPacket } = {}
 
 local callbackMap: { [string]: { (...any) -> () } } = {}
 
@@ -224,47 +224,20 @@ function Server._startProcess()
 			debug.profilebegin("BridgeNet2.receive")
 
 			for plr, data in inboundQueue do
-				if #data >= 12 then
-					packetOverflowHandler(plr, #data)
-					Output.warn(string.format(PACKET_LIMIT_OVERFLOW, plr.Name, plr.UserId))
-					continue
-				end
+				local dataLen = #data
 
-				local skip = false
-				for position, value in data do
-					-- Got skipped because last one was an identifier
-					if skip == true then
-						skip = false
-						continue
-					end
-					if typeof(value) == "string" then
-						skip = true
-					else
-						incorrectFormatHandler(plr)
-						Output.warn(string.format("Incorrect format from player: %*:%*", plr.Name, plr.UserId))
-						continue
-					end
-
-					local passed = data[position + 1]
-
-					if typeof(passed) ~= "table" then
-						incorrectFormatHandler(plr)
-						Output.warn(string.format("Incorrect format from player: %*:%*", plr.Name, plr.UserId))
-						continue
-					end
-
-					local callbacks = callbackMap[value]
+				for i = 1, dataLen, 2 do
+					local identifier, passed = data[i], data[i + 1]
+					local callbacks = callbackMap[identifier]
 					if not callbacks then
-						value = nil
 						continue
 					end
-
-					for _, callback in callbackMap[value] do
+					for _, callback in callbacks do
 						RecycledSpawn(callback, plr, passed)
 					end
 				end
-
-				table.clear(inboundQueue[plr])
+				
+				table.clear(data)
 			end
 
 			-- End BridgeNet2 receive profile
