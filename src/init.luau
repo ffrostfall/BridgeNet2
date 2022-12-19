@@ -1,4 +1,5 @@
 --!strict
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
@@ -40,29 +41,23 @@ export type TOutputObject = {
 	Text: string,
 }
 
+-- Duplicate module check
+
 if isServer then
+	local module = CollectionService:GetTagged("BridgeNet2")[1]
+	if module then
+		Output.warn(
+			"Duplicate dependency found. Centralize your packages so that dependency duping doesn't occur, or use Wally, a package manager for roblox."
+		)
+		assert(module:IsA("ModuleScript"))
+		return require(module)
+	else
+		CollectionService:AddTag(script, "BridgeNet2")
+	end
 	Output.warnAssert(
 		script:IsDescendantOf(ReplicatedStorage),
 		"It is strongly recommended to put the BridgeNet module in ReplicatedStorage, where both the client and server can access it."
 	)
-
-	-- Duplicate module check
-
-	-- Check for marker
-	for _, object in ReplicatedStorage:GetChildren() do
-		if object.Name == "BridgeNet2" and object:IsA("ObjectValue") then
-			Output.warn(
-				"Duplicate dependency found. Centralize your packages so that dependency duping doesn't occur, or use Wally, a package manager for roblox."
-			)
-			return require(object.Value :: ModuleScript)
-		end
-	end
-
-	-- Add marker
-	local value = Instance.new("ObjectValue")
-	value.Value = script
-	value.Name = "BridgeNet2"
-	value.Parent = ReplicatedStorage
 end
 
 export type TClientBridge<T> = ClientBridge.ClientBridge<T>
