@@ -101,10 +101,7 @@ function ClientBridge:Connect(callback: (object: any) -> ())
 end
 
 function ClientBridge:Destroy()
-	for key, _ in self do
-		-- No complex instances here either, just set everything to nil.
-		self[key] = nil
-	end
+	table.clear(self)
 	setmetatable(self, nil)
 end
 
