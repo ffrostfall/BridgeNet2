@@ -48,7 +48,6 @@ end
 
 function Output.logAssert(condition: boolean, info: string)
 	if not condition then
-		logSeverity(SEVERITY_LEVELS.Log, info)
 		Output.log(info)
 	end
 end
@@ -60,7 +59,6 @@ end
 
 function Output.warnAssert(condition: boolean, info: string)
 	if not condition then
-		logSeverity(SEVERITY_LEVELS.Warn, info)
 		Output.warn(info)
 	end
 end
@@ -72,7 +70,6 @@ end
 
 function Output.errorAssert(condition: boolean, info: string)
 	if not condition then
-		logSeverity(SEVERITY_LEVELS.Error, info)
 		task.spawn(Output.error, info)
 	end
 end
@@ -84,7 +81,6 @@ end
 
 function Output.fatalAssert(condition: boolean, info: string)
 	if not condition then
-		logSeverity(SEVERITY_LEVELS.Fatal, info)
 		Output.fatal(info)
 	end
 end

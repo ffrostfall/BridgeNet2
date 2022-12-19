@@ -51,48 +51,39 @@ function Client._startProcess()
 	RunService.PostSimulation:Connect(function()
 		debug.profilebegin("BridgeNet2")
 
-		debug.profilebegin("BridgeNet2.Send")
-
 		if #outboundQueue > 0 then
 			DataRemoteEvent:FireServer(outboundQueue)
 			table.clear(outboundQueue)
 		end
 
-		debug.profileend()
+		for index, obj in inboundQueue do
+			debug.profilebegin("packet")
+			for identifier, data in obj do
+				local calls = callbackMap[identifier]
 
-		debug.profilebegin("BridgeNet2.Receive")
-		if #inboundQueue > 0 then
-			for _, obj in inboundQueue do
-				debug.profilebegin("packet")
-				for identifier, data in obj do
-					debug.profilebegin("fired: " .. #data)
-					local calls = callbackMap[identifier]
+				if not calls then
+					continue
+				end
 
-					if not calls then
-						continue
+				if #calls == 1 then
+					local callback = calls[1]
+					for _, object in data do
+						func = callback
+						RecycledSpawn(object)
 					end
-
-					if #calls == 1 then
-						local callback = calls[1]
-						for _, object in data do
+				else
+					for _, object in data do
+						for _, callback in calls do
 							func = callback
 							RecycledSpawn(object)
 						end
-					else
-						for _, object in data do
-							for _, callback in calls do
-								func = callback
-								RecycledSpawn(object)
-							end
-						end
 					end
-					debug.profileend()
 				end
-				debug.profileend()
 			end
-			table.clear(inboundQueue)
+
+			inboundQueue[index] = nil
+			debug.profileend()
 		end
-		debug.profileend()
 
 		debug.profileend()
 	end)
@@ -104,7 +95,7 @@ function Client._startProcess()
 		for _ = 1, 5 do
 			task.wait()
 		end
-		MetaRemoteEvent:FireServer("loaded")
+		MetaRemoteEvent:FireServer("/1")
 	end)
 
 	Output.log("Loaded")

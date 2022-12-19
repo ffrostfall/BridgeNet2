@@ -2,6 +2,7 @@
 local ClientProcess = require(script.Parent.ClientProcess)
 local Identifiers = require(script.Parent.Identifiers)
 local Output = require(script.Parent.Output)
+local TableKit = require(script.Parent.Parent.TableKit)
 
 --[[
 	@class ClientBridge
@@ -28,18 +29,29 @@ function ClientBridge._new(name: string)
 end
 
 function ClientBridge:InboundMiddleware(middlewareTable: { (object: any) -> any })
+	Output.fatalAssert(
+		typeof(middlewareTable) == "table",
+		string.format("InboundMiddleware takes table, got %*", typeof(middlewareTable))
+	)
+	Output.errorAssert(TableKit.IsArray(middlewareTable), "InboundMiddleware takes array, got dictionary.")
+
 	self._inboundMiddleware = middlewareTable
 end
 
 function ClientBridge:OutboundMiddleware(middlewareTable: { (object: any) -> any })
+	Output.fatalAssert(
+		typeof(middlewareTable) == "table",
+		string.format("OutboundMiddleware takes table, got %*", typeof(middlewareTable))
+	)
+	Output.errorAssert(TableKit.IsArray(middlewareTable), "InboundMiddleware takes array, got dictionary.")
+
 	self._outboundMiddleware = middlewareTable
 end
 
 function ClientBridge:Fire(object)
-	Output.fatalAssert(
-		typeof(object) == "table",
-		string.format("ClientBridge:Fire takes a table, got %*", typeof(object))
-	)
+	if not object then
+		object = {}
+	end
 
 	if self._outboundMiddleware ~= nil then
 		local result = object

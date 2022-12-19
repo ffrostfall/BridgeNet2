@@ -17,7 +17,7 @@ export type TPlayerType = {
 	type: "except",
 	plrVal: (Player | { Player }),
 }
-type TMetaMessage = "loaded"
+type TMetaMessage = "/1"
 type TOutboundPacket = {
 	plrs: TPlayerType,
 	id: string,
@@ -32,7 +32,7 @@ local PACKET_LIMIT_OVERFLOW =
 
 local isServer = RunService:IsServer()
 
-local playerList: { [Player]: boolean? } = {}
+local playerList: { [Player]: boolean } = {}
 local loadingPlayers: { [Player]: number? } = {}
 local loadingPlayersQueue: { [Player]: {}? } = {}
 
@@ -42,15 +42,14 @@ local inboundQueue: { [Player]: TInboundPacket? } = {}
 local callbackMap: { [string]: { (...any) -> () } } = {}
 
 -- Placeholder functions
-local incorrectFormatHandler: (plr: Player) -> () = function(...)
-	return ...
-end
-local incorrectTypeHandler: (plr: Player) -> () = function(...)
-	return ...
-end
-local packetOverflowHandler: (plr: Player, number) -> () = function(...)
-	return ...
-end
+type TIncorrectFormatHandler = (plr: Player) -> ()
+local incorrectFormatHandler: TIncorrectFormatHandler = function() end
+
+type TIncorrectTypeHandler = (plr: Player) -> ()
+local incorrectTypeHandler: TIncorrectTypeHandler = function() end
+
+type TPacketOverflowHandler = (plr: Player, packetOverflowAmount: number) -> ()
+local packetOverflowHandler: TPacketOverflowHandler = function() end
 
 local freeThread: thread? -- Thread reusage
 
@@ -106,32 +105,32 @@ function Server._startProcess()
 		end)
 
 		MetaRemoteEvent.OnServerEvent:Connect(function(plr, meta: TMetaMessage)
-			if meta == "loaded" then -- Different meta messages for the future
+			if meta == "/1" then -- Different meta messages for the future
 				loadingPlayers[plr] = nil
 				DataRemoteEvent:FireClient(plr, loadingPlayersQueue[plr])
 				loadingPlayersQueue[plr] = nil
 			end
 		end)
 
-		DataRemoteEvent.OnServerEvent:Connect(
-			function(plr, tbl) -- Do typechecking before inserting it into the queue- minimize errors in the queue.
-				if typeof(tbl) ~= "table" then -- Invalid packet
+		DataRemoteEvent.OnServerEvent:Connect(function(plr, tbl)
+			-- Do typechecking before inserting it into the queue- minimize errors in the queue.
+			if (typeof(tbl) ~= "table") or (not TableKit.IsArray(tbl)) then -- Invalid packet
+				incorrectTypeHandler(plr)
+				Output.warn(string.format(INVALID_PACKET_MESSAGE, plr.Name, plr.UserId))
+				return
+			end
+
+			for _, packet: TInboundPacket in tbl do
+				local packetType = typeof(packet)
+				if packetType ~= "table" and packetType ~= "string" then
 					incorrectTypeHandler(plr)
 					Output.warn(string.format(INVALID_PACKET_MESSAGE, plr.Name, plr.UserId))
 					return
 				end
 
-				for _, v: TInboundPacket in tbl do
-					if typeof(v) ~= "table" and typeof(v) ~= "string" then
-						incorrectTypeHandler(plr)
-						Output.warn(string.format(INVALID_PACKET_MESSAGE, plr.Name, plr.UserId))
-						return
-					end
-
-					table.insert(inboundQueue[plr], v)
-				end
+				table.insert(inboundQueue[plr], v)
 			end
-		)
+		end)
 
 		local sendStructure = {}
 		RunService.PostSimulation:Connect(function()
@@ -146,15 +145,16 @@ function Server._startProcess()
 
 				if plrVal.type == "all" then -- Who to send the payload to
 					for plr in playerList do
-						if not sendStructure[plr] then -- If a structure doesn't exist for that player, create one
+						local structurePlr = sendStructure[plr]
+						if not structurePlr then -- If a structure doesn't exist for that player, create one
 							sendStructure[plr] = { [identifier] = { contents } }
 						else
 							-- If a structure doesn't exist for that identifier,
 							-- create one
-							if not sendStructure[plr][identifier] then
-								sendStructure[plr][identifier] = { contents }
+							if not structurePlr[identifier] then
+								structurePlr[identifier] = { contents }
 							else
-								table.insert(sendStructure[plr][identifier], contents)
+								table.insert(structurePlr[identifier], contents)
 							end
 						end
 					end
@@ -164,14 +164,15 @@ function Server._startProcess()
 					end
 
 					for plr, give in playerList do
+						local structurePlr = sendStructure[plr]
 						if give == true then -- Put the payload in every single players data, **if** they're not blacklisted
-							if not sendStructure[plr] then
+							if not structurePlr then
 								sendStructure[plr] = { [identifier] = { contents } }
 							else
-								if not sendStructure[plr][identifier] then
-									sendStructure[plr][identifier] = { contents }
+								if not structurePlr[identifier] then
+									structurePlr[identifier] = { contents }
 								else
-									table.insert(sendStructure[plr][identifier], contents)
+									table.insert(structurePlr[identifier], contents)
 								end
 							end
 						else
@@ -182,13 +183,14 @@ function Server._startProcess()
 					-- in huge servers.
 				elseif plrVal.type == "set" then
 					for _, plr in plrVal.plrVal :: { Player } do
-						if not sendStructure[plr] then
+						local structurePlr = sendStructure[plr]
+						if not structurePlr then
 							sendStructure[plr] = { [identifier] = { contents } }
 						else
-							if not sendStructure[plr][identifier] then
-								sendStructure[plr][identifier] = { contents }
+							if not structurePlr[identifier] then
+								structurePlr[identifier] = { contents }
 							else
-								table.insert(sendStructure[plr][identifier], contents)
+								table.insert(structurePlr[identifier], contents)
 							end
 						end
 					end
@@ -248,6 +250,12 @@ function Server._startProcess()
 					if typeof(passed) ~= "table" then
 						incorrectFormatHandler(plr)
 						Output.warn(string.format("Incorrect format from player: %*:%*", plr.Name, plr.UserId))
+						continue
+					end
+
+					local callbacks = callbackMap[value]
+					if not callbacks then
+						value = nil
 						continue
 					end
 
@@ -317,20 +325,22 @@ end
 
 function Server.PlayersExcept(blacklistedPlayers: { Player }): TPlayerType
 	Output.fatalAssert(isServer, "Cannot call .AllPlayers() from client")
-	--[[Output.fatalAssert(
-		typeof(blacklistedPlayers) == "table",
+	Output.fatalAssert(
+		typeof(blacklistedPlayers) == "table" and TableKit.IsArray(blacklistedPlayers),
 		string.format("PlayersExcept takes an array of players, got %*", typeof(blacklistedPlayers))
-	)]]
+	)
 	return { type = "except", plrVal = blacklistedPlayers }
 end
 
 function Server.Players(setOfPlayers: { Player }): TPlayerType
 	Output.fatalAssert(isServer, "Cannot call .AllPlayers() from client")
-	--[[Output.fatalAssert(
-		typeof(setOfPlayers) == "table",
+	Output.fatalAssert(
+		typeof(setOfPlayers) == "table" and TableKit.IsArray(setOfPlayers),
 		string.format("Players takes an array of players, got %*", typeof(setOfPlayers))
-	)]]
+	)
 	return { type = "set", plrVal = setOfPlayers }
 end
+
+function Server.Player(player: Player) end
 
 return Server
