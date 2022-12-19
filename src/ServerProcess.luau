@@ -232,6 +232,11 @@ function Server._startProcess()
 					if not callbacks then
 						continue
 					end
+					if typeof(passed) ~= "table" then
+						incorrectFormatHandler(plr)
+						Output.warn(string.format("Incorrect format from player: %*:%*", plr.Name, plr.UserId))
+						break
+					end
 					for _, callback in callbacks do
 						RecycledSpawn(callback, plr, passed)
 					end
