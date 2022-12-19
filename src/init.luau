@@ -41,9 +41,8 @@ export type TOutputObject = {
 	Text: string,
 }
 
--- Duplicate module check
-
 if isServer then
+	-- Duplicate module check
 	local module = CollectionService:GetTagged("BridgeNet2")[1]
 	if module then
 		Output.warn(
@@ -52,12 +51,13 @@ if isServer then
 		assert(module:IsA("ModuleScript"))
 		return require(module)
 	else
+		-- This module will be the center one
+		Output.warnAssert(
+			script:IsDescendantOf(ReplicatedStorage),
+			"It is strongly recommended to put the BridgeNet module in ReplicatedStorage, where both the client and server can access it."
+		)
 		CollectionService:AddTag(script, "BridgeNet2")
 	end
-	Output.warnAssert(
-		script:IsDescendantOf(ReplicatedStorage),
-		"It is strongly recommended to put the BridgeNet module in ReplicatedStorage, where both the client and server can access it."
-	)
 end
 
 export type TClientBridge<T> = ClientBridge.ClientBridge<T>
