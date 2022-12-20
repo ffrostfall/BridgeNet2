@@ -65,15 +65,18 @@ function ServerBridge:Connect<T>(callback: (player: Player, object: T) -> nil)
 
 			-- Loop through the middleware functions- raise a silent log if any of them return nil for debugging.
 			for _, middlewareFunction: (player: Player, object: any) -> any in self._inboundMiddleware do
-				result = middlewareFunction(player, result)
-					or (
-						Output.silent(
-							string.format(
-								"Inbound middleware on bridge %* returned nil, defaulting to object.",
+				local returned = middlewareFunction(player, result)
+				if typeof(returned) ~= "table" then
+					Output.silent(
+						string.format(
+								"Inbound middleware on bridge %* did not return a table; ignoring the return.",
 								self._name
 							)
-						) or object
+						)
 					)
+				else
+					result = returned
+				end
 			end
 
 			callback(player, result)
