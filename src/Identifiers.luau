@@ -117,14 +117,14 @@ function Identifiers.ReferenceIdentifier(name: string, maxWaitTime: number?): st
 end
 
 function Identifiers.Tree(tree: recursiveTree, waitTime: number?)
-	Output.fatalAssert(typeof(tree) == "table", string.format("tree takes a table, not a %*", typeof(tree)))
+	Output.fatalAssert(typeof(tree) == "table", string.format("Tree takes a table, not a %*", typeof(tree)))
 
 	local identifierTree = {}
 
 	for name, value in tree do
 		Output.errorAssert(typeof(name) == "string", "you should not pass a non-string value in your tree table")
 		if typeof(value) == "table" then
-			Identifiers.Tree(value, waitTime or 0.8)
+			identifierTree[name] = Identifiers.Tree(value, waitTime or 0.8)
 		else
 			identifierTree[name] = Identifiers.ReferenceIdentifier(value, waitTime or 0.8)
 		end
