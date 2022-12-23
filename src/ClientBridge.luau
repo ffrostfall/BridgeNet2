@@ -58,15 +58,17 @@ function ClientBridge:Fire(object)
 
 		-- Loop through the middleware functions- raise a silent log if any of them return nil for debugging.
 		for _, middlewareFunction: (object: any) -> any in self._outboundMiddleware do
-			result = middlewareFunction(result)
-				or (
-					Output.silent(
-						string.format(
-							"Outbound middleware on bridge %* returned nil, defaulting to object.",
-							self._name
-						)
-					) or object
+			local returned = middlewareFunction(result)
+			if typeof(returned) ~= "table" then
+				Output.silent(
+					string.format(
+						"Inbound middleware on bridge %* did not return a table; ignoring the return.",
+						self._name
+					)
 				)
+			else
+				result = returned
+			end
 		end
 
 		ClientProcess._addToQueue(self._identifier, result)
@@ -82,15 +84,17 @@ function ClientBridge:Connect(callback: (object: any) -> ())
 
 			-- Loop through the middleware functions- raise a silent log if any of them return nil for debugging.
 			for _, middlewareFunction: (player: Player, object: any) -> any in self._inboundMiddleware do
-				result = middlewareFunction(result)
-					or (
-						Output.silent(
-							string.format(
-								"Inbound middleware on bridge %* returned nil, defaulting to object.",
-								self._name
-							)
-						) or object
+				local returned = middlewareFunction(result)
+				if typeof(returned) ~= "table" then
+					Output.silent(
+						string.format(
+							"Inbound middleware on bridge %* did not return a table; ignoring the return.",
+							self._name
+						)
 					)
+				else
+					result = returned
+				end
 			end
 
 			callback(result)
