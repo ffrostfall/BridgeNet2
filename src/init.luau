@@ -1,6 +1,33 @@
 --!strict
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+
+if isServer then
+	-- Duplicate module check
+	local module = CollectionService:GetTagged("BridgeNet2")[1]
+	if module then
+		Output.warn(
+			"Duplicate dependency found. Centralize your packages so that dependency duping doesn't occur, or use Wally, a package manager for roblox."
+		)
+		assert(module:IsA("ModuleScript"))
+		return require(module)
+	else
+		-- This module will be the center one
+		Output.warnAssert(
+			script:IsDescendantOf(ReplicatedStorage),
+			"It is strongly recommended to put the BridgeNet module in ReplicatedStorage, where both the client and server can access it."
+		)
+		CollectionService:AddTag(script, "BridgeNet2")
+	end
+else
+	-- Server should add the tag, we will just wait for it
+	local module = CollectionService:GetTagged("BridgeNet2")[1] or CollectionService:GetInstanceAddedSignal("BridgeNet2"):Wait()
+	if module ~= script then
+		assert(module:IsA("ModuleScript"))
+		return require(module)
+	end
+end
 
 local Identifiers = require(script.Identifiers)
 local Server = require(script.ServerProcess)
@@ -39,31 +66,6 @@ export type TOutputObject = {
 	Severity: ESeverityLevel,
 	Text: string,
 }
-
-if isServer then
-	Output.warnAssert(
-		script:IsDescendantOf(ReplicatedStorage),
-		"It is strongly recommended to put the BridgeNet module in ReplicatedStorage, where both the client and server can access it."
-	)
-
-	-- Duplicate module check
-
-	-- Check for marker
-	for _, object in ReplicatedStorage:GetChildren() do
-		if object.Name == "BridgeNet2" and object:IsA("ObjectValue") then
-			Output.warn(
-				"Duplicate dependency found. Centralize your packages so that dependency duping doesn't occur, or use Wally, a package manager for roblox."
-			)
-			return require(object.Value :: ModuleScript)
-		end
-	end
-
-	-- Add marker
-	local value = Instance.new("ObjectValue")
-	value.Value = script
-	value.Name = "BridgeNet2"
-	value.Parent = ReplicatedStorage
-end
 
 export type TClientBridge<T> = ClientBridge.ClientBridge<T>
 export type TServerBridge<T> = ServerBridge.ServerBridge<T>
