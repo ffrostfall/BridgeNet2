@@ -1,4 +1,5 @@
 --!strict
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
@@ -16,6 +17,8 @@ local IdentifierStorage
 
 local Identifiers = {}
 
+local yieldingForIdentifiers: { [string]: { [thread]: true } } = {}
+
 function Identifiers._startProcess()
 	if RunService:IsServer() then
 		IdentifierStorage = Instance.new("Folder")
@@ -30,6 +33,14 @@ function Identifiers._startProcess()
 		IdentifierStorage.AttributeChanged:Connect(function(id: string)
 			local packed: string = IdentifierStorage:GetAttribute(id)
 			if packed then
+				local waitingThreads = yieldingForIdentifiers[id]
+				if waitingThreads then
+					for thread in waitingThreads do
+						task.spawn(thread, packed)
+					end
+					yieldingForIdentifiers[id] = nil
+				end
+				
 				fullIdentifierMap[id] = packed
 				compressedIdentifierMap[packed] = id
 			else
@@ -78,31 +89,42 @@ function Identifiers.ReferenceIdentifier(name: string, maxWaitTime: number?): st
 
 		return packed
 	else
-		local waitingTime = 0
-
-		while true do
-			local identifier = fullIdentifierMap[name]
-			if identifier then
-				return identifier
-			end
-			waitingTime += task.wait()
-			if waitingTime >= maxWaitTimeArg then
-				Output.warn(string.format("reached max wait time for identifier %*, broke yield.", name))
-				return ""
-			end
+		local identifier = fullIdentifierMap[name]
+		if identifier then
+			return identifier
 		end
+
+		local thread = coroutine.running()
+		
+		local threads = yieldingForIdentifiers[name]
+		if threads then
+			threads[thread] = true
+		else
+			threads = {[thread] = true}
+			yieldingForIdentifiers[name] = threads
+		end
+		
+		local timeOut = task.delay(maxWaitTimeArg, function()
+			Output.warn(string.format("reached max wait time for identifier %*, broke yield.", name))
+			threads[thread] = nil
+			task.spawn(thread, "")
+		end)
+
+		local identifier = coroutine.yield()
+		task.cancel(timeOut)
+		return identifier
 	end
 end
 
 function Identifiers.Tree(tree: recursiveTree, waitTime: number?)
-	Output.fatalAssert(typeof(tree) == "table", string.format("tree takes a table, not a %*", typeof(tree)))
+	Output.fatalAssert(typeof(tree) == "table", string.format("Tree takes a table, not a %*", typeof(tree)))
 
 	local identifierTree = {}
 
 	for name, value in tree do
 		Output.errorAssert(typeof(name) == "string", "you should not pass a non-string value in your tree table")
 		if typeof(value) == "table" then
-			Identifiers.Tree(value, waitTime or 0.8)
+			identifierTree[name] = Identifiers.Tree(value, waitTime or 0.8)
 		else
 			identifierTree[name] = Identifiers.ReferenceIdentifier(value, waitTime or 0.8)
 		end
