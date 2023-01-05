@@ -324,7 +324,7 @@ function Server.AllPlayers(): TPlayerType
 end
 
 function Server.PlayersExcept(blacklistedPlayers: { Player }): TPlayerType
-	Output.fatalAssert(isServer, "Cannot call .AllPlayers() from client")
+	Output.fatalAssert(isServer, "Cannot call .PlayersExcept() from client")
 	Output.fatalAssert(
 		typeof(blacklistedPlayers) == "table" and TableKit.IsArray(blacklistedPlayers),
 		string.format("PlayersExcept takes an array of players, got %*", typeof(blacklistedPlayers))
@@ -333,7 +333,7 @@ function Server.PlayersExcept(blacklistedPlayers: { Player }): TPlayerType
 end
 
 function Server.Players(setOfPlayers: { Player }): TPlayerType
-	Output.fatalAssert(isServer, "Cannot call .AllPlayers() from client")
+	Output.fatalAssert(isServer, "Cannot call .Players() from client")
 	Output.fatalAssert(
 		typeof(setOfPlayers) == "table" and TableKit.IsArray(setOfPlayers),
 		string.format("Players takes an array of players, got %*", typeof(setOfPlayers))

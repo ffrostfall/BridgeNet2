@@ -63,17 +63,19 @@ function ServerBridge:Connect<T>(callback: (player: Player, object: T) -> nil)
 		if self._inboundMiddleware ~= nil then
 			local result = object
 
-			-- Loop through the middleware functions- raise a silent log if any of them return nil for debugging.
+			-- Loop through the middleware functions- raise a silent log if any of them don't return a table for debugging.
 			for _, middlewareFunction: (player: Player, object: any) -> any in self._inboundMiddleware do
-				result = middlewareFunction(player, result)
-					or (
-						Output.silent(
-							string.format(
-								"Inbound middleware on bridge %* returned nil, defaulting to object.",
-								self._name
-							)
-						) or object
+				local returned = middlewareFunction(player, result)
+				if typeof(returned) ~= "table" then
+					Output.silent(
+						string.format(
+							"Inbound middleware on bridge %* did not return a table; ignoring the return.",
+							self._name
+						)
 					)
+				else
+					result = returned
+				end
 			end
 
 			callback(player, result)
@@ -103,15 +105,17 @@ function ServerBridge:Fire<T>(target: ServerProcess.TPlayerType, object: T & {})
 
 		-- Loop through the middleware functions- raise a silent log if any of them return nil for debugging.
 		for _, middlewareFunction: (player: ServerProcess.TPlayerType, object: any) -> any in self._outboundMiddleware do
-			result = middlewareFunction(target, result)
-				or (
-					Output.silent(
-						string.format(
-							"Outbound middleware on bridge %* returned nil, defaulting to object.",
-							self._name
-						)
-					) or object
+			local returned = middlewareFunction(player, result)
+			if typeof(returned) ~= "table" then
+				Output.silent(
+					string.format(
+						"Outbound middleware on bridge %* did not return a table; ignoring the return.",
+						self._name
+					)
 				)
+			else
+				result = returned
+			end
 		end
 
 		ServerProcess._addToQueue(target, self._identifier, result)
