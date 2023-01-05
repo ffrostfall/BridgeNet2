@@ -1,32 +1,32 @@
----
-sidebar_position: 2
----
 
-# Features
-BridgeNet2 is packed with a ton of features to make your life easier, and make your game have higher code quality.
+### BridgeNet2 offers a variety of features to improve performance, security, abstraction, and the API of your roblox game.
 
-## Features: Performance
-- [x] **A lot faster** than Roblox's default systems. 
-- [x] **Reduces Roblox's overhead per remote call: client to server takes 5 bytes, server to client takes 2 bytes.** 
-- [x] Identifier system to help reduce bandwidth used on static strings; any size string will take 3 or 4 bytes. 
-- [x] Utilities for optimization: FromHex, ToHex, DictionaryToTable, and more. 
-- [x] Thread reusage on connections for extreme efficiency. 
+## Performance:
 
-## Features: Security
-- [] Customizable rate limiting across all bridges- never worry about remote spamming again. 
-- [x] Supports middleware for easy typechecking and security implementation. 
-- [x] Internally secure. It is impossible to cause an error in the library as an exploiter. 
+- [x] Significantly faster than the default systems in Roblox.
+- [x] Reduces the overhead of remote calls: client to server takes 5 bytes, server to client takes 2 bytes.
+- [x] Uses an identifier system to reduce bandwidth usage for static strings, which take 3 or 4 bytes regardless of size.
+- [x] Includes utilities for optimization such as `FromHex`, `ToHex`, and `DictionaryToTable`.
+- [x] Reuses threads on connections for increased efficiency.
 
-## Features: Abstraction
-- [x] Queues up remote calls to a player until they are loaded- never worry about the invocation queue again. 
-- [x] Instances are abstracted away- never worry about RemoteEvents again. 
-- [] Abstract any optimization needed away from you- convert dictionaries to arrays and back easily. 
-- [] Don't worry about client/server boundaries when defining remotes. ReferenceBridge and CreateTree have you!  
+## Security:
 
-## Features: API
-- [x] Fully typed in strict Luau. 
-- [x] Extremely performant. Never worry about API performance, ever.
-- [x] Very easy to pick up. 
-- [x] No more tuples- which means a much easier time using strict typing.
-- [x] API is built to be extendable; you can implement your own systems and whitelists.
-- [x] A new testing mode has been added; when you call BridgeNet.Testing(boolean), it will activate a mock-mode that never yields.
+- [x] Customizable rate limiting for all bridges to prevent remote spamming.
+- [x] Provides middleware for easy typechecking and security implementation.
+- [x] Internally secure to protect against exploitation.
+
+## Abstraction:
+
+- [x] Queues up remote calls to a player until they are loaded, eliminating the need to worry about the invocation queue.
+- [x] Abstracts instances, eliminating the need to use RemoteEvents.
+- [x] Abstracts away optimization tasks, allowing for easy conversion between dictionaries and arrays.
+- [x] Removes the need to consider client/server boundaries when defining remotes using ReferenceBridge and CreateTree.
+
+## API:
+
+- [x] Fully typed in strict Luau.
+- [x] Highly performant.
+- [x] Easy to learn and use.
+- [x] Replaces tuples with a more user-friendly system for strict typing.
+- [x] Designed to be extendable, allowing for the implementation of custom systems and whitelists.
+- [x] Includes a testing mode that activates a mock mode that never yields when BridgeNet.Testing(boolean) is called.

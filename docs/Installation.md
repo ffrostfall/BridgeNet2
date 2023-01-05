@@ -16,11 +16,11 @@ BridgeNet2 = ffrostflame/bridgenet2@0.1.0
 
 ## Without Wally
 
-### Option 1, syncing in with .rbxm:
+## Option 1: Syncing with .rbxm:
 1. Get the ``.rbxm`` file from the latest [release](https://github.com/ffrostflame/BridgeNet2/releases).
 2. Sync manually or drop into studio manually
 
-## Option 2, copying source folder:
+## Option 2: copying source folder:
 1. Copy the `src` folder of the repository
 2. Drop into your project
 3. Rename the folder to `BridgeNet2`
