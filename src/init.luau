@@ -1,7 +1,11 @@
 --!strict
+
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+
+local Output = require(script.Output)
+local isServer = RunService:IsServer()
 
 if isServer then
 	-- Duplicate module check
@@ -33,12 +37,9 @@ local Identifiers = require(script.Identifiers)
 local Server = require(script.ServerProcess)
 local Client = require(script.ClientProcess)
 local NetworkUtils = require(script.NetworkUtils)
-local Output = require(script.Output)
 local ObjectFormat = require(script.ObjectFormat)
 local ServerBridge = require(script.ServerBridge)
 local ClientBridge = require(script.ClientBridge)
-
-local isServer = RunService:IsServer()
 
 --[[
 	@class BridgeNet2
