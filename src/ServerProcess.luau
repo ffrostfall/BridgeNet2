@@ -128,7 +128,7 @@ function Server._startProcess()
 					return
 				end
 
-				table.insert(inboundQueue[plr], v)
+				table.insert(inboundQueue[plr], packet)
 			end
 		end)
 
