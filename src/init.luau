@@ -3,6 +3,16 @@ local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local Identifiers = require(script.Identifiers)
+local Server = require(script.ServerProcess)
+local Client = require(script.ClientProcess)
+local NetworkUtils = require(script.NetworkUtils)
+local Output = require(script.Output)
+local ServerBridge = require(script.ServerBridge)
+local ClientBridge = require(script.ClientBridge)
+
+local isServer = RunService:IsServer()
+
 if isServer then
 	-- Duplicate module check
 	local module = CollectionService:GetTagged("BridgeNet2")[1]
@@ -22,23 +32,13 @@ if isServer then
 	end
 else
 	-- Server should add the tag, we will just wait for it
-	local module = CollectionService:GetTagged("BridgeNet2")[1] or CollectionService:GetInstanceAddedSignal("BridgeNet2"):Wait()
+	local module = CollectionService:GetTagged("BridgeNet2")[1]
+		or CollectionService:GetInstanceAddedSignal("BridgeNet2"):Wait()
 	if module ~= script then
 		assert(module:IsA("ModuleScript"))
 		return require(module)
 	end
 end
-
-local Identifiers = require(script.Identifiers)
-local Server = require(script.ServerProcess)
-local Client = require(script.ClientProcess)
-local NetworkUtils = require(script.NetworkUtils)
-local Output = require(script.Output)
-local ObjectFormat = require(script.ObjectFormat)
-local ServerBridge = require(script.ServerBridge)
-local ClientBridge = require(script.ClientBridge)
-
-local isServer = RunService:IsServer()
 
 --[[
 	@class BridgeNet2
@@ -51,7 +51,6 @@ task.spawn(function()
 	Output.silent("Starting BridgeNet2 identifier process")
 	Identifiers._startProcess()
 	Output.silent("Starting BridgeNet2 object format process")
-	ObjectFormat._startProcess()
 	if isServer then
 		Output.log("Starting BridgeNet2 server process")
 		Server._startProcess()

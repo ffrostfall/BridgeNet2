@@ -10,18 +10,15 @@ function NetworkUtils.CreateUUID(): string
 end
 
 function NetworkUtils.FromHex(toConvert: string): string
-	Output.fatalAssert(typeof(toConvert) == "string", string.format("FromHex takes string, got %*", typeof(toConvert)))
-	local len = #toConvert
-	local result = table.create(len / 2)
-	for i = 1, len, 2 do
-		result[(i + 1) / 2] = tonumber(string.sub(toConvert, i, i + 1), 16)
-	end
-	return string.char(unpack(result) :: number)
+	return string.gsub(toConvert, "..", function(cc)
+		return string.char(tonumber(cc, 16) :: number)
+	end) :: string
 end
 
 function NetworkUtils.ToHex(toConvert: string): string
-	Output.fatalAssert(typeof(toConvert) == "string", string.format("ToHex takes string, got %*", typeof(toConvert)))
-	return string.format(string.rep("%02X", #toConvert), string.byte(toConvert, 1, -1))
+	return string.gsub(toConvert, ".", function(c)
+		return string.format("%02X", string.byte(c :: any))
+	end) :: string
 end
 
 function NetworkUtils.ToReadableHex(toConvert: string): string

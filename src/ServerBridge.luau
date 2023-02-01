@@ -104,8 +104,8 @@ function ServerBridge:Fire<T>(target: ServerProcess.TPlayerType, object: T & {})
 		local result = object
 
 		-- Loop through the middleware functions- raise a silent log if any of them return nil for debugging.
-		for _, middlewareFunction: (player: ServerProcess.TPlayerType, object: any) -> any in self._outboundMiddleware do
-			local returned = middlewareFunction(player, result)
+		for _, middlewareFunction: (object: any) -> any in self._outboundMiddleware do
+			local returned = middlewareFunction(result)
 			if typeof(returned) ~= "table" then
 				Output.silent(
 					string.format(

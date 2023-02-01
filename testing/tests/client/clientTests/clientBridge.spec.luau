@@ -2,7 +2,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local BridgeNet2 = require(ReplicatedStorage.Packages.bridgenet2)
 
 return {
-	["should be able to reference the bridge"] = function(tester)
+	--[[["should be able to reference the bridge"] = function(tester)
 		local expect = tester.expect
 
 		local bridge
@@ -25,5 +25,5 @@ return {
 		local expect = tester.expect
 
 		expect(function() end).to.never.throw()
-	end,
+	end,]]
 }

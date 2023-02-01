@@ -43,13 +43,19 @@ local callbackMap: { [string]: { (...any) -> () } } = {}
 
 -- Placeholder functions
 type TIncorrectFormatHandler = (plr: Player) -> ()
-local incorrectFormatHandler: TIncorrectFormatHandler = function() end
+local incorrectFormatHandler: TIncorrectFormatHandler = function(...)
+	return ...
+end
 
 type TIncorrectTypeHandler = (plr: Player) -> ()
-local incorrectTypeHandler: TIncorrectTypeHandler = function() end
+local incorrectTypeHandler: TIncorrectTypeHandler = function(...)
+	return ...
+end
 
 type TPacketOverflowHandler = (plr: Player, packetOverflowAmount: number) -> ()
-local packetOverflowHandler: TPacketOverflowHandler = function() end
+local packetOverflowHandler: TPacketOverflowHandler = function(...)
+	return ...
+end
 
 local freeThread: thread? -- Thread reusage
 
@@ -128,7 +134,7 @@ function Server._startProcess()
 					return
 				end
 
-				table.insert(inboundQueue[plr], v)
+				table.insert(inboundQueue[plr], packet)
 			end
 		end)
 
@@ -241,7 +247,7 @@ function Server._startProcess()
 						RecycledSpawn(callback, plr, passed)
 					end
 				end
-				
+
 				table.clear(data)
 			end
 
@@ -318,7 +324,5 @@ function Server.Players(setOfPlayers: { Player }): TPlayerType
 	)
 	return { type = "set", plrVal = setOfPlayers }
 end
-
-function Server.Player(player: Player) end
 
 return Server
