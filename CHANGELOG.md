@@ -2,9 +2,11 @@
 
 This project uses semver.
 
-## version 0.2.0
+## version 0.2.0 [unreleased]
 
-- Added
+- Added :Once()
+- Added :Wait()
+- Added single-player targeting
 
 ## version 0.1.0
 

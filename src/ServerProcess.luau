@@ -1,6 +1,4 @@
 --!strict
-
----@diagnostic disable: unused-local, unused-vararg
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
