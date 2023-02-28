@@ -5,9 +5,9 @@ local Output = require(script.Parent.Output)
 
 type TOptionalCallback<T> = (() -> T) | (() -> nil) | (() -> ())
 
---[[
+--[=[
 	@class ServerBridge
-]]
+]=]
 local ServerBridge = {}
 ServerBridge.__index = ServerBridge
 
@@ -95,7 +95,24 @@ function ServerBridge:DisableRateLimit()
 	self._rateLimiting = false
 end
 
-function ServerBridge:Fire<T>(target: ServerProcess.TPlayerType, object: T & {})
+function ServerBridge:Wait()
+	local thread = coroutine.running()
+	self:Connect(function(player, object)
+		coroutine.resume(thread, player, object)
+	end)
+	return coroutine.yield()
+end
+
+function ServerBridge:Once<T>(func: (player: Player | ServerProcess.TPlayerType, object: T & {}) -> ())
+	local connection
+	connection = self:Connect(function(player, object)
+		connection:Disconnect()
+		func(player, object)
+	end)
+	return connection
+end
+
+function ServerBridge:Fire<T>(target: ServerProcess.TPlayerType | Player, object: T & {})
 	if not object then
 		object = {}
 	end

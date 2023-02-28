@@ -21,6 +21,11 @@
   },
   "homepage": "https://github.com/ffrostflame/BridgeNet2#readme",
   "dependencies": {
-    "@rbxts/types": "^1.0.649"
+    "@rbxts/types": "^1.0.649",
+    "child_process": "^1.0.2",
+    "fs": "^0.0.1-security",
+    "fs-extra": "^11.1.0",
+    "path": "^0.12.7",
+    "rimraf": "^4.1.2"
   }
 }

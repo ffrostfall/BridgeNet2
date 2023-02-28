@@ -40,12 +40,12 @@ else
 	end
 end
 
---[[
+--[=[
 	@class BridgeNet2
 
 	The BridgeNet2 root namespace which contains all of the functions included in the library. Luau and typescript APIs
 	are completely separate- you cannot use the typescript API in Luau, and vice versa.
-]]
+]=]
 
 task.spawn(function()
 	Output.silent("Starting BridgeNet2 identifier process")
@@ -86,7 +86,7 @@ local SecurityMeasures: TSecurityMeasuresEnum = {
 local ReturnValue = {
 	-- NetworkUtils
 
-	--[[
+	--[=[
 		@function NumberToBestForm
 		@within BridgeNet2
 
@@ -108,10 +108,10 @@ local ReturnValue = {
 
 		@param number number
 		@return string | number
-	]]
+	]=]
 	NumberToBestForm = NetworkUtils.NumberToBestForm,
 
-	--[[
+	--[=[
 		@function ToHex
 		@within BridgeNet2
 
@@ -131,10 +131,10 @@ local ReturnValue = {
 
 		@param regularAscii string
 		@return string
-	]]
+	]=]
 	ToHex = NetworkUtils.ToHex,
 
-	--[[
+	--[=[
 		@function ToReadableHex
 		@within BridgeNet2
 
@@ -153,10 +153,10 @@ local ReturnValue = {
 
 		@param regularAscii string
 		@return string
-	]]
+	]=]
 	ToReadableHex = NetworkUtils.ToReadableHex,
 
-	--[[
+	--[=[
 		@function FromHex
 		@within BridgeNet2
 
@@ -176,10 +176,10 @@ local ReturnValue = {
 
 		@param hexadecimal string
 		@return string
-	]]
+	]=]
 	FromHex = NetworkUtils.FromHex,
 
-	--[[
+	--[=[
 		@function CreateUUID
 		@within BridgeNet2
 
@@ -198,11 +198,11 @@ local ReturnValue = {
 		```
 
 		@return string
-	]]
+	]=]
 	CreateUUID = NetworkUtils.CreateUUID,
 
 	-- Identifiers
-	--[[
+	--[=[
 		@function ReferenceIdentifier
 		@within BridgeNet2
 	
@@ -225,10 +225,10 @@ local ReturnValue = {
 		
 		@param identifierName string
 		@return string
-	]]
+	]=]
 	ReferenceIdentifier = Identifiers.ReferenceIdentifier,
 
-	--[[
+	--[=[
 		@function FromCompressed
 		@within BridgeNet2
 		
@@ -236,10 +236,10 @@ local ReturnValue = {
 		
 		@param compressedIdentifier
 		@return string
-	]]
+	]=]
 	FromCompressed = Identifiers.FromCompressed,
 
-	--[[
+	--[=[
 		@function FromIdentifier
 		@within BridgeNet2
 		
@@ -247,66 +247,66 @@ local ReturnValue = {
 		
 		@param identifierName
 		@return string
-	]]
+	]=]
 	FromIdentifier = Identifiers.FromIdentifier,
 
 	-- Players
 
-	--[[
+	--[=[
 		@function AllPlayers
 		@within BridgeNet2
 		
 		
 		@return PlayerSet
-	]]
+	]=]
 	AllPlayers = Server.AllPlayers,
 
-	--[[
+	--[=[
 		@function PlayersExcept
 		@within BridgeNet2
 		
 		
 		@return PlayerSet
-	]]
+	]=]
 	PlayersExcept = Server.PlayersExcept,
 
-	--[[
+	--[=[
 		@function Players
 		@within BridgeNet2
 		
 		
 		@return PlayerSet
-	]]
+	]=]
 	Players = Server.Players,
 
-	--[[
+	--[=[
 		@function ReadOutput
 		@within BridgeNet2
 		
 		
 		@return OutputLog
-	]]
+	]=]
 	ReadOutput = Output.Hook,
 
-	--[[
+	--[=[
 		@function ReferenceBridge
 		@within BridgeNet2
 		
 		
 		@return ServerBridge | ClientBridge
-	]]
+	]=]
 
 	ReferenceBridge = (
 			((if isServer then ServerBridge._new else ClientBridge._new) :: any) :: () -> any
 		) :: (name: string) -> (TClientBridge<any> | TServerBridge<any>),
 
-	--[[
+	--[=[
 		@function SetSecurity
 		@within BridgeNet2
 		
 		
 		@return void
-	]]
+	]=]
 	SetSecurity = function(
 		securityMeasure: ESecurityMeasures,
 		handler: (player: Player) -> () | (player: Player, num: number?) -> ()

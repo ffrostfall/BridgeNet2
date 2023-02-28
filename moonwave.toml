@@ -1,7 +1,6 @@
-title = "BridgeNet"
-gitRepoUrl = "https://github.com/ffrostflame/bridgenet/"
+title = "BridgeNet2"
+gitRepoUrl = "https://github.com/ffrostflame/bridgenet2/"
 
-gitSourceBranch = "main"
 changelog = true
 
 [docusaurus]

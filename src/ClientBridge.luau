@@ -4,9 +4,9 @@ local Identifiers = require(script.Parent.Identifiers)
 local Output = require(script.Parent.Output)
 local TableKit = require(script.Parent.Parent.TableKit)
 
---[[
+--[=[
 	@class ClientBridge
-]]
+]=]
 local ClientBridge = {}
 ClientBridge.__index = ClientBridge
 

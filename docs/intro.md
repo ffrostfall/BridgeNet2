@@ -1,7 +1,6 @@
+# About
 
-# BridgeNet2
-
-BridgeNet2 is an advanced networking library for Roblox that offers a range of features for **optimizing, securing, and debugging network communication**. Key benefits of using BridgeNet2 include its **speed** and how it's faster than built-in Roblox networking functions and uses less bandwidth; A load of utility features such as  **middleware, rate limiting, hexadecimal functions, and optimization functions**; and its **strict typing**, which allows for type checking of both incoming and outgoing data. BridgeNet2 also includes security features such as the ability to **control network security** and the contents of messages, and it can **disrupt the output of RemoteSpy logs**, making it harder for exploiters to read them.
+BridgeNet2 is an advanced networking library for Roblox that offers a range of features for **optimizing, securing, and debugging network communication**. Key benefits of using BridgeNet2 include its **speed** and how it's faster than built-in Roblox networking functions and uses less bandwidth; A load of utility features such as **middleware, rate limiting, hexadecimal functions, and optimization functions**; and its **strict typing**, which allows for type checking of both incoming and outgoing data. BridgeNet2 also includes security features such as the ability to **control network security** and the contents of messages, and it can **disrupt the output of RemoteSpy logs**, making it harder for exploiters to read them.
 
 # Why should you use BridgeNet2?
 

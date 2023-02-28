@@ -149,6 +149,20 @@ function Server._startProcess()
 				local identifier: string = outbound.id
 				local contents: { any } = outbound.payload
 
+				if typeof(plrVal) == "Instance" then
+					local plr = plrVal
+					local structurePlr = sendStructure[plr]
+					if not structurePlr then
+						sendStructure[plr] = { [identifier] = { contents } }
+					else
+						if not structurePlr[identifier] then
+							structurePlr[identifier] = { contents }
+						else
+							table.insert(structurePlr[identifier], contents)
+						end
+					end
+				end
+
 				if plrVal.type == "all" then -- Who to send the payload to
 					for plr in playerList do
 						local structurePlr = sendStructure[plr]
@@ -262,7 +276,7 @@ function Server._startProcess()
 	end)
 end
 
-function Server._addToQueue(plrs: TPlayerType, identifier: string, payload: { [any]: any })
+function Server._addToQueue(plrs: TPlayerType | Player, identifier: string, payload: { [any]: any })
 	table.insert(outboundQueue, {
 		plrs = plrs,
 		id = identifier,
