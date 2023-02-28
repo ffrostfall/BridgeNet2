@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[674],{73257:e=>{e.exports=JSON.parse('{"functions":[],"properties":[],"types":[],"name":"ServerBridge","desc":"","source":{"line":11,"path":"src/ServerBridge.luau"}}')}}]);
