@@ -104,6 +104,24 @@ function ClientBridge:Connect(callback: (object: any) -> ())
 	end)
 end
 
+function ClientBridge:Once<T>(func: (object: T & {}) -> ())
+	local connection
+	connection = self:Connect(function(object)
+		connection:Disconnect()
+		func(object)
+	end)
+	return connection
+end
+
+function ClientBridge:Wait()
+	local thread = coroutine.running()
+	self:Connect(function(object)
+		coroutine.resume(thread, object)
+	end)
+	return coroutine.yield()
+end
+
+
 function ClientBridge:Destroy()
 	table.clear(self)
 	setmetatable(self, nil)
