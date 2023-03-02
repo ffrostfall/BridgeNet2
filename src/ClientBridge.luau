@@ -104,7 +104,7 @@ function ClientBridge:Connect(callback: (object: any) -> ())
 	end)
 end
 
-function ClientBridge:Once<T>(func: (object: T & {}) -> ())
+function ClientBridge:Once(func: (object: any) -> ())
 	local connection
 	connection = self:Connect(function(object)
 		connection:Disconnect()
