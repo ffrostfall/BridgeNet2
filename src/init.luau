@@ -172,28 +172,6 @@ local SecurityMeasures: TSecurityMeasuresEnum = {
 ]=]
 
 --[=[
-	@function FromHex
-	@within BridgeNet2
-
-	Converts a hexadecimal string into a string of ASCII characters. This can be used for various purposes,
-	for example, converting a globally uniue identifier (GUID) into a binary string, which saves data. Or you
-	could convert a thread ID, or a memory address into a string for debugging purposes. Hexadecimal can be used
-	for a variety of purposes. The function uses string.char alongside tonumber(string, 16) to convert the
-	hexadecimal into a character code, which is converted into ASCII.
-
-	```lua
-	-- "Example hexadecimal string" in hex
-	local hexString = "4578616D706C652068657861646563696D616C20737472696E67"
-	local asciiString = BridgeNet2.FromHex(hexString)
-
-	print(asciiString) -- Prints 'Example hexadecimal string'
-	```
-
-	@param hexadecimal string
-	@return string
-]=]
-
---[=[
 	@function CreateUUID
 	@within BridgeNet2
 
