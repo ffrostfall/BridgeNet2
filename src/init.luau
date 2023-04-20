@@ -275,27 +275,34 @@ local SecurityMeasures: TSecurityMeasuresEnum = {
 
 --[=[
 	@function AllPlayers
+	@server
 	@within BridgeNet2
-	
-	
-	@return PlayerSet
+
+
+	@return TPlayerType{type: "all"}
 ]=]
 
 --[=[
 	@function PlayersExcept
+	@server
 	@within BridgeNet2
+
+	Returns a `TPlayerType` value with `plrVal` set to `blacklistedPlayers`
 	
-	
-	@return PlayerSet
+	@param blacklistedPlayers {Player}
+	@return TPlayerType{type: "except", plrVal: (Player | { Player })}
 ]=]
 
 --[=[
-		@function Players
-		@within BridgeNet2
-		
-		
-		@return PlayerSet
-	]=]
+	@function Players
+	@server
+	@within BridgeNet2
+	
+	Convert an table of `Player` instances to `TPlayerType`
+	
+	@param setOfPlayers {Player}
+	@return TPlayerType{type: "set", plrVal: (Player | { Player })}
+]=]
 
 --[=[
 		@function ReadOutput
