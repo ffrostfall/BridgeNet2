@@ -1,3 +1,6 @@
+---
+sidebar_position: 2
+---
 
 ### BridgeNet2 offers a variety of features to improve performance, security, abstraction, and the API of your roblox game.
 
