@@ -278,6 +278,7 @@ local SecurityMeasures: TSecurityMeasuresEnum = {
 	@within BridgeNet2
 	
 	
+	
 	@return PlayerSet
 ]=]
 
@@ -327,7 +328,7 @@ local SecurityMeasures: TSecurityMeasuresEnum = {
 		@function SetSecurity
 		@within BridgeNet2
 		
-		
+		Allows you to set custom handlers for when a client sends: 
 		
 		@return void
 	]=]
@@ -336,6 +337,10 @@ local SecurityMeasures: TSecurityMeasuresEnum = {
 		@function SecurityMeasuresEnum
 		@within BridgeNet2
 		
+		A list of available security functions to override. Members:
+		 - incorrectType
+		 - incorrectFormat
+		 - packetOverflow
 		
 		@return void
 	]=]

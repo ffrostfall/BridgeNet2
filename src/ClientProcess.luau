@@ -28,7 +28,7 @@ local function yielder()
 end
 
 local function RecycledSpawn(payload)
-	if freeThread == nil then
+	if not freeThread then
 		freeThread = coroutine.create(yielder)
 		coroutine.resume(freeThread)
 	end

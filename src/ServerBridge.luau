@@ -36,14 +36,39 @@ function ServerBridge._new(name: string)
 	return self
 end
 
+--[=[
+	@function OutboundMiddleware
+		@within ServerBridge
+
+
+		@param middlewareTable { (player: Player, object: any) -> any }
+		@return void
+]=]
 function ServerBridge:InboundMiddleware(middlewareTable: { (player: Player, object: any) -> any })
 	self._inboundMiddleware = middlewareTable
 end
 
+--[=[
+	@function OutboundMiddleware
+		@within ServerBridge
+
+
+		@param middlewareTable { (target: ServerProcess.TPlayerType, object: any) -> any }
+		@return void
+]=]
 function ServerBridge:OutboundMiddleware(middlewareTable: { (target: ServerProcess.TPlayerType, object: any) -> any })
 	self._outboundMiddleware = middlewareTable
 end
 
+--[=[
+	@function Connect
+		@within ServerBridge
+
+		
+
+		@param middlewareTable (player: Player, object: T) -> nil
+		@return void
+]=]
 function ServerBridge:Connect<T>(callback: (player: Player, object: T) -> nil)
 	ServerProcess._connect(self._identifier, function(player, object)
 		if self._rateLimiting then
@@ -85,16 +110,37 @@ function ServerBridge:Connect<T>(callback: (player: Player, object: T) -> nil)
 	end)
 end
 
+--[=[
+	@function RateLimit
+		@within ServerBridge
+
+
+		@param invokesPerSecond number
+		@param overflowFunction (player: Player) -> nil
+		@return void
+]=]
 function ServerBridge:RateLimit(invokesPerSecond: number, overflowFunction: (player: Player) -> nil)
 	self._rateLimiting = true
 	self._overflowFunction = overflowFunction
 	self._maxRate = invokesPerSecond
 end
 
+--[=[
+	@function DisableRateLimit
+		@within ServerBridge
+
+		@return void
+]=]
 function ServerBridge:DisableRateLimit()
 	self._rateLimiting = false
 end
 
+--[=[
+	@function Wait
+		@within ServerBridge
+
+		@return ...
+]=]
 function ServerBridge:Wait()
 	local thread = coroutine.running()
 	self:Connect(function(player, object)
@@ -112,6 +158,12 @@ function ServerBridge:Once<T>(func: (player: Player | ServerProcess.TPlayerType,
 	return connection
 end
 
+--[=[
+	@function Fire
+		@within ServerBridge
+
+		@return void
+]=]
 function ServerBridge:Fire<T>(target: ServerProcess.TPlayerType | Player, object: T & {})
 	if not object then
 		object = {}
@@ -141,6 +193,12 @@ function ServerBridge:Fire<T>(target: ServerProcess.TPlayerType | Player, object
 	end
 end
 
+--[=[
+	@function Destroy
+		@within ServerBridge
+
+		@return void
+]=]
 function ServerBridge:Destroy()
 	table.clear(self)
 	setmetatable(self, nil)
