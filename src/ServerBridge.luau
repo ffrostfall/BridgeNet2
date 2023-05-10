@@ -1,9 +1,13 @@
---!strict
 local ServerProcess = require(script.Parent.ServerProcess)
 local Identifiers = require(script.Parent.Identifiers)
 local Output = require(script.Parent.Output)
+local TableKit = require(script.Parent.Parent.TableKit)
 
 type TOptionalCallback<T> = (() -> T) | (() -> nil) | (() -> ())
+
+local function toStringData(data)
+	return TableKit.ToString(data)
+end
 
 --[=[
 	@class ServerBridge
@@ -11,38 +15,14 @@ type TOptionalCallback<T> = (() -> T) | (() -> nil) | (() -> ())
 local ServerBridge = {}
 ServerBridge.__index = ServerBridge
 
-function ServerBridge._new(name: string)
-	local self = setmetatable({}, ServerBridge)
-
-	-- Since this is the server, ReferenceIdentifier will not yield
-	self._identifier = Identifiers.ReferenceIdentifier(name)
-
-	-- Middleware
-	self._outboundMiddleware = nil
-	self._inboundMiddleware = nil
-
-	self._name = name
-
-	-- Rate limiting
-	self._rateLimiting = false
-	self._maxRate = 500
-	self._rateMap = {}
-	self._overflowFunction = function()
-		return false
-	end
-
-	ServerProcess._idIntoBridge(self._identifier)
-
-	return self
-end
-
 --[=[
 	@function OutboundMiddleware
-		@within ServerBridge
+	@within ServerBridge
 
+	Sets the middleware to be used in-between your :Fire() and actually sending it out over the RemoteEvent.
 
-		@param middlewareTable { (player: Player, object: any) -> any }
-		@return void
+	@param middlewareTable { (player: Player, object: any) -> any }
+	@return void
 ]=]
 function ServerBridge:InboundMiddleware(middlewareTable: { (player: Player, object: any) -> any })
 	self._inboundMiddleware = middlewareTable
@@ -69,8 +49,8 @@ end
 		@param middlewareTable (player: Player, object: T) -> nil
 		@return void
 ]=]
-function ServerBridge:Connect<T>(callback: (player: Player, object: T) -> nil)
-	ServerProcess._connect(self._identifier, function(player, object)
+function ServerBridge:Connect(callback: (player: Player, object: any) -> nil)
+	local connection = ServerProcess._connect(self._identifier, function(player, object)
 		if self._rateLimiting then
 			if self._rateMap[player] ~= nil then
 				self._rateMap[player] += 1
@@ -103,11 +83,36 @@ function ServerBridge:Connect<T>(callback: (player: Player, object: T) -> nil)
 				end
 			end
 
+			if self._logging then
+				Output.log(
+					`bridge {self._name} got fired from player {player.Name}:{player.UserId} with data {toStringData(result)}`
+				)
+			end
+
 			callback(player, result)
 		else
+			if self._logging then
+				Output.log(
+					`bridge {self._name} got fired from player {player.Name}:{player.UserId} with data {toStringData(object)}`
+				)
+			end
 			callback(player, object)
 		end
 	end)
+
+	return {
+		Disconnect = function()
+			connection()
+		end,
+	}
+end
+
+function ServerBridge:StartLogging()
+	self._logging = true
+end
+
+function ServerBridge:StopLogging()
+	self._logging = false
 end
 
 --[=[
@@ -137,9 +142,11 @@ end
 
 --[=[
 	@function Wait
-		@within ServerBridge
+	@within ServerBridge
 
-		@return ...
+	Equivalent of RemoteEvent.OnServerEvent:Wait()
+
+	@return ...
 ]=]
 function ServerBridge:Wait()
 	local thread = coroutine.running()
@@ -149,7 +156,7 @@ function ServerBridge:Wait()
 	return coroutine.yield()
 end
 
-function ServerBridge:Once<T>(func: (player: Player | ServerProcess.TPlayerType, object: T & {}) -> ())
+function ServerBridge:Once(func: (player: Player | ServerProcess.TPlayerType, object: any) -> ())
 	local connection
 	connection = self:Connect(function(player, object)
 		connection:Disconnect()
@@ -160,11 +167,15 @@ end
 
 --[=[
 	@function Fire
-		@within ServerBridge
+	@within ServerBridge
 
-		@return void
+	Equivalent of RemoteEvent:FireClient(), the ServerBridge:Fire() function takes a player type, or a singular player, and fires the
+	data to the client. Important to note that it takes a singular object as a parameter instead of using tuples-
+	this is intentional.
+
+	@return void
 ]=]
-function ServerBridge:Fire<T>(target: ServerProcess.TPlayerType | Player, object: T & {})
+function ServerBridge:Fire<_, T>(target: ServerProcess.TPlayerType | Player, object: T)
 	if not object then
 		object = {}
 	end
@@ -187,41 +198,75 @@ function ServerBridge:Fire<T>(target: ServerProcess.TPlayerType | Player, object
 			end
 		end
 
+		if self._logging then
+			Output.log(`fired {self._name} with data {toStringData(result)}`)
+		end
+
 		ServerProcess._addToQueue(target, self._identifier, result)
 	else
+		if self._logging then
+			local targetString
+			if typeof(target) == "Instance" then
+				targetString = target.Name
+			else
+				targetString = toStringData(target)
+			end
+
+			Output.log(`fired {self._name} with data {toStringData(object)} to players {targetString}`)
+		end
+
 		ServerProcess._addToQueue(target, self._identifier, object)
 	end
 end
 
---[=[
-	@function Destroy
-		@within ServerBridge
-
-		@return void
-]=]
-function ServerBridge:Destroy()
-	table.clear(self)
-	setmetatable(self, nil)
-end
-
 -- () -> () means it returns void. Pretty neat trick I learned from Aloroider
-export type ServerBridge<T> =
-	{
-		Connect: (
-			self: ServerBridge<T>,
-			((player: Player, object: T) -> ()) | ((player: Player, object: T) -> nil)
-		) -> (),
-		Fire: (self: ServerBridge<T>, target: ServerProcess.TPlayerType, object: T) -> (),
-		InboundMiddleware: (
-			self: ServerBridge<T>,
-			{ ((player: Player, object: T) -> T) | ((player: Player, object: T) -> ()) | ((player: Player, object: T) -> nil) }
-		) -> (),
-		OutboundMiddleware: (
-			self: ServerBridge<T>,
-			{ ((target: ServerProcess.TPlayerType, object: T) -> T) | ((player: Player, object: T) -> ()) | ((player: Player, object: T) -> nil) }
-		) -> (),
-		RateLimit: (self: ServerBridge<T>, invokesPerSecond: number, overflowFunction: (player: Player) -> nil) -> (),
-		Destroy: (self: ServerBridge<T>) -> (),
-	}
+--[[export type ServerBridge<T> = {
+	Connect: (
+		self: ServerBridge<T>,
+		((player: Player, object: T) -> ()) | ((player: Player, object: T) -> nil)
+	) -> (),
+	Fire: (self: ServerBridge<T>, target: ServerProcess.TPlayerType, object: T) -> (),
+	InboundMiddleware: (
+		self: ServerBridge<T>,
+		{
+			((player: Player, object: T) -> T)
+			| ((player: Player, object: T) -> ())
+			| ((player: Player, object: T) -> nil)
+		}
+	) -> (),
+	OutboundMiddleware: (
+		self: ServerBridge<T>,
+		{
+			((target: ServerProcess.TPlayerType, object: T) -> T)
+			| ((player: Player, object: T) -> ())
+			| ((player: Player, object: T) -> nil)
+		}
+	) -> (),
+	RateLimit: (self: ServerBridge<T>, invokesPerSecond: number, overflowFunction: (player: Player) -> nil) -> (),
+	Destroy: (self: ServerBridge<T>) -> (),
+}]]
 
-return ServerBridge
+return function(name: string)
+	local self = setmetatable({
+		-- Since this is the server, ReferenceIdentifier will not yield
+		_identifier = Identifiers.ReferenceIdentifier(name),
+
+		-- Middleware
+		_outboundMiddleware = nil,
+		_inboundMiddleware = nil,
+
+		_name = name,
+
+		-- Rate limiting
+		_rateLimiting = false,
+		_maxRate = 500,
+		_rateMap = {},
+		_overflowFunction = function()
+			return false
+		end,
+	} :: {}, ServerBridge)
+
+	ServerProcess._idIntoBridge(self._identifier)
+
+	return self
+end

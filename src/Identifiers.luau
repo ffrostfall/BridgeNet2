@@ -40,7 +40,7 @@ function Identifiers._startProcess()
 					end
 					yieldingForIdentifiers[id] = nil
 				end
-				
+
 				fullIdentifierMap[id] = packed
 				compressedIdentifierMap[packed] = id
 			else
@@ -77,10 +77,12 @@ function Identifiers.ReferenceIdentifier(name: string, maxWaitTime: number?): st
 	end
 
 	if RunService:IsServer() then
-		Output.fatalAssert(identifierCount <= 1114111, "cannot create any more identifiers - over 1114111 cap.")
+		Output.fatalAssert(identifierCount <= 2 ^ 16, `cannot create any more identifiers - over {2 ^ 16} cap.`)
 		Output.silent(string.format("creating identifier: %*, identifier count: %*", name, identifierCount))
 
-		local packed = utf8.char(identifierCount)
+		local packed = if identifierCount <= 255
+			then string.pack("B", identifierCount)
+			else string.pack("H", identifierCount)
 		identifierCount += 1
 		IdentifierStorage:SetAttribute(name, packed)
 
@@ -95,24 +97,24 @@ function Identifiers.ReferenceIdentifier(name: string, maxWaitTime: number?): st
 		end
 
 		local thread = coroutine.running()
-		
+
 		local threads = yieldingForIdentifiers[name]
 		if threads then
 			threads[thread] = true
 		else
-			threads = {[thread] = true}
+			threads = { [thread] = true }
 			yieldingForIdentifiers[name] = threads
 		end
-		
+
 		local timeOut = task.delay(maxWaitTimeArg, function()
 			Output.warn(string.format("reached max wait time for identifier %*, broke yield.", name))
 			threads[thread] = nil
 			task.spawn(thread, "")
 		end)
 
-		local identifier = coroutine.yield()
+		local retrievedIdentifier = coroutine.yield()
 		task.cancel(timeOut)
-		return identifier
+		return retrievedIdentifier
 	end
 end
 

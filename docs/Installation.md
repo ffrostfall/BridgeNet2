@@ -7,7 +7,7 @@ sidebar_position: 3
 ## With Wally
 
 1. Install [Wally](https://wally.run)
-2. Put BridgeNet in the ``wally.toml`` file under ``[dependencies]``
+2. Put BridgeNet2 in the ``wally.toml`` file under ``[dependencies]``
 ```toml title="wally.toml"
 [dependencies]
 BridgeNet2 = ffrostflame/bridgenet2@0.1.0

@@ -1,4 +1,3 @@
---!strict
 local ClientProcess = require(script.Parent.ClientProcess)
 local Identifiers = require(script.Parent.Identifiers)
 local Output = require(script.Parent.Output)
@@ -7,25 +6,20 @@ local TableKit = require(script.Parent.Parent.TableKit)
 --[=[
 	@class ClientBridge
 ]=]
+
+local function toStringData(data)
+	return TableKit.ToString(data)
+end
+
 local ClientBridge = {}
 ClientBridge.__index = ClientBridge
 
--- Can't have functional class-specific typings within the actual class sadly
-function ClientBridge._new(name: string)
-	local self = setmetatable({}, ClientBridge)
+function ClientBridge:RateLimit()
+	Output.error("cannot call :RateLimit() from client")
+end
 
-	-- Default max wait time is fine
-	self._identifier = Identifiers.ReferenceIdentifier(name)
-
-	ClientProcess._idIntoBridge(self._identifier)
-
-	self._name = name
-
-	-- Middleware
-	self._inboundMiddleware = {}
-	self._outboundMiddleware = {}
-
-	return self
+function ClientBridge:DisableRateLimit()
+	Output.error("cannot call :DisableRateLimit() from client")
 end
 
 function ClientBridge:InboundMiddleware(middlewareTable: { (object: any) -> any })
@@ -71,14 +65,22 @@ function ClientBridge:Fire(object)
 			end
 		end
 
+		if self._logging then
+			Output.log(`fired {self._name} with data {toStringData(result)}`)
+		end
+
 		ClientProcess._addToQueue(self._identifier, result)
 	else
+		if self._logging then
+			Output.log(`fired {self._name} with data {toStringData(object)}`)
+		end
+
 		ClientProcess._addToQueue(self._identifier, object)
 	end
 end
 
 function ClientBridge:Connect(callback: (object: any) -> ())
-	ClientProcess._connect(self._identifier, function(object)
+	local disconnect = ClientProcess._connect(self._identifier, function(object)
 		if self._inboundMiddleware ~= nil then
 			local result = object
 
@@ -97,11 +99,33 @@ function ClientBridge:Connect(callback: (object: any) -> ())
 				end
 			end
 
+			if self._logging then
+				Output.log(`bridge {self._name} got fired from server with data {toStringData(result)}`)
+			end
+
 			callback(result)
 		else
+			if self._logging then
+				Output.log(`bridge {self._name} got fired from server with data {toStringData(object)}`)
+			end
+
 			callback(object)
 		end
 	end)
+
+	return {
+		Disconnect = function()
+			disconnect()
+		end,
+	}
+end
+
+function ClientBridge:StartLogging()
+	self._logging = true
+end
+
+function ClientBridge:StopLogging()
+	self._logging = false
 end
 
 function ClientBridge:Destroy()
@@ -109,18 +133,17 @@ function ClientBridge:Destroy()
 	setmetatable(self, nil)
 end
 
-export type ClientBridge<T> = {
-	Fire: (self: ClientBridge<T>, object: T) -> (),
-	Connect: (self: ClientBridge<T>, callback: (object: T) -> ()) -> (),
-	InboundMiddleware: (
-		self: ClientBridge<T>,
-		{ ((object: T) -> T) | ((object: T) -> ()) | ((object: T) -> nil) }
-	) -> (),
-	OutboundMiddleware: (
-		self: ClientBridge<T>,
-		{ ((object: T) -> T) | ((object: T) -> ()) | ((object: T) -> nil) }
-	) -> (),
-	Destroy: () -> (),
-}
+return function(name: string)
+	local self = setmetatable({
+		_identifier = Identifiers.ReferenceIdentifier(name),
+		_name = name,
 
-return ClientBridge
+		-- middleware
+		_inboundMiddleware = {},
+		_outboundMiddleware = {},
+	} :: {}, ClientBridge)
+
+	ClientProcess._idIntoBridge(self._identifier)
+
+	return self
+end

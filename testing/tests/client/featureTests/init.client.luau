@@ -2,9 +2,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local BridgeNet2 = require(ReplicatedStorage.Packages.bridgenet2)
 
-local bridge: BridgeNet2.TClientBridge<{
-	TestField: string,
-}> = BridgeNet2.ReferenceBridge("tester")
+local bridge = BridgeNet2.ReferenceBridge("tester")
+
+bridge:StartLogging()
 
 bridge:OutboundMiddleware({
 	function(obj)

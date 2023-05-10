@@ -19,12 +19,11 @@
 
 - [x] Queues up remote calls to a player until they are loaded, eliminating the need to worry about the invocation queue.
 - [x] Abstracts instances, eliminating the need to use RemoteEvents.
-- [x] Abstracts away optimization tasks, allowing for easy conversion between dictionaries and arrays.
-- [x] Removes the need to consider client/server boundaries when defining remotes using ReferenceBridge and CreateTree.
+- [x] Abstracts away optimization tasks.
+- [x] Removes the need to consider client/server boundaries when defining remotes using ReferenceBridge.
 
 ## API:
 
-- [x] Fully typed in strict Luau.
 - [x] Highly performant.
 - [x] Easy to learn and use.
 - [x] Replaces tuples with a more user-friendly system for strict typing.

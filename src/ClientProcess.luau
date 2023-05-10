@@ -89,10 +89,10 @@ function Client._startProcess()
 	end)
 
 	task.spawn(function()
-		-- Wait 5 frames to let other scripts execute.
+		-- Wait 15 frames to let other scripts execute.
 		-- This is to let connections to bridges appear- there would be no point in the queueing functionality if BridgeNet2 loaded
 		-- before your connections could actually connect.
-		for _ = 1, 5 do
+		for _ = 1, 15 do
 			task.wait()
 		end
 		MetaRemoteEvent:FireServer("/1")
@@ -112,6 +112,12 @@ end
 
 function Client._connect(identifier: string, callback: (object: any) -> ())
 	table.insert(callbackMap[identifier], callback)
+
+	return function()
+		local index = table.find(callbackMap[identifier], callback)
+		table.remove(callbackMap[identifier], index)
+		return
+	end
 end
 
 return Client

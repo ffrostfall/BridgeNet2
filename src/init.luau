@@ -1,6 +1,3 @@
---!strict
-local CollectionService = game:GetService("CollectionService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Identifiers = require(script.Identifiers)
@@ -12,33 +9,6 @@ local ServerBridge = require(script.ServerBridge)
 local ClientBridge = require(script.ClientBridge)
 
 local isServer = RunService:IsServer()
-
-if isServer then
-	-- Duplicate module check
-	local module = CollectionService:GetTagged("BridgeNet2")[1]
-	if module then
-		Output.warn(
-			"Duplicate dependency found. Centralize your packages so that dependency duping doesn't occur, or use Wally, a package manager for roblox."
-		)
-		assert(module:IsA("ModuleScript"))
-		return require(module)
-	else
-		-- This module will be the center one
-		Output.warnAssert(
-			script:IsDescendantOf(ReplicatedStorage),
-			"It is strongly recommended to put the BridgeNet module in ReplicatedStorage, where both the client and server can access it."
-		)
-		CollectionService:AddTag(script, "BridgeNet2")
-	end
-else
-	-- Server should add the tag, we will just wait for it
-	local module = CollectionService:GetTagged("BridgeNet2")[1]
-		or CollectionService:GetInstanceAddedSignal("BridgeNet2"):Wait()
-	if module ~= script then
-		assert(module:IsA("ModuleScript"))
-		return require(module)
-	end
-end
 
 task.spawn(function()
 	Output.silent("Starting BridgeNet2 identifier process")
@@ -58,9 +28,6 @@ export type TOutputObject = {
 	Severity: ESeverityLevel,
 	Text: string,
 }
-
-export type TClientBridge<T> = ClientBridge.ClientBridge<T>
-export type TServerBridge<T> = ServerBridge.ServerBridge<T>
 
 export type ESecurityMeasures = "incorrectFormat" | "incorrectType" | "packetOverflow"
 -- We have to have this type because Luau has no string literal inference and the type will resolve to "string"
@@ -252,7 +219,8 @@ local SecurityMeasures: TSecurityMeasuresEnum = {
 	@function AllPlayers
 	@within BridgeNet2
 	
-	
+	Returns a symbol that when passed into ServerBridge:Fire(), tells the internal server process
+	to send this data to every single player.
 	
 	@return PlayerSet
 ]=]
@@ -261,26 +229,22 @@ local SecurityMeasures: TSecurityMeasuresEnum = {
 	@function PlayersExcept
 	@within BridgeNet2
 	
+	This function takes a list of players, and tells the internal server process to send this data to everyone
+	except the specified blacklisted players.
 	
+	@param blacklistedPlayers { Players }
 	@return PlayerSet
 ]=]
 
 --[=[
-		@function Players
-		@within BridgeNet2
-		
-		
-		@return PlayerSet
-	]=]
-
---[=[
-		@function ReadOutput
-		@within BridgeNet2
-		
-		The BridgeNet2.ReadOutput function returns the logs table that stores all the output objects created by the logging functions. It is used to retrieve the log data so that it can be processed or displayed in some way. The logs table contains objects with two properties: Severity and Text. Severity represents the severity level of the log (log, warn, error, or fatal), while Text contains the string message associated with the log. By calling BridgeNet2.ReadOutput() in code, the logs table can be accessed and the data can be processed or analyzed.
-			
-		@return OutputLog
-	]=]
+	@function Players
+	@within BridgeNet2
+	
+	This function takes a list of players, and tells the internal server process to send this data to everyone
+	except the specified blacklisted players.
+	
+	@return PlayerSet
+]=]
 
 --[=[
 	@function ReferenceBridge
@@ -300,25 +264,24 @@ local SecurityMeasures: TSecurityMeasuresEnum = {
 ]=]
 
 --[=[
-		@function SetSecurity
-		@within BridgeNet2
-		
-		Allows you to set custom handlers for when a client sends: 
-		
-		@return void
-	]=]
+	@function SetSecurity
+	@within BridgeNet2
+	
+	Allows you to set custom functions for when a client sends incorrect data.
+	
+	@return void
+]=]
 
 --[=[
-		@function SecurityMeasuresEnum
-		@within BridgeNet2
-		
-		A list of available security functions to override. Members:
-		 - incorrectType
-		 - incorrectFormat
-		 - packetOverflow
-		
-		@return void
-	]=]
+	@prop SecurityMeasuresEnum
+	@within BridgeNet2
+	
+	A list of available security functions to override. Members:
+	 - incorrectType
+	 - incorrectFormat
+	
+	@return void
+]=]
 
 local ReturnValue = {
 	-- NetworkUtils
@@ -346,11 +309,7 @@ local ReturnValue = {
 
 	Players = Server.Players,
 
-	ReadOutput = Output.Hook,
-
-	ReferenceBridge = (
-			((if isServer then ServerBridge._new else ClientBridge._new) :: any) :: () -> any
-		) :: (name: string) -> (TClientBridge<any> | TServerBridge<any>),
+	ReferenceBridge = if isServer then ServerBridge else ClientBridge,
 
 	SetSecurity = function(
 		securityMeasure: ESecurityMeasures,
@@ -362,8 +321,6 @@ local ReturnValue = {
 			Server._incorrectTypeHandler(handler)
 		elseif securityMeasure == "incorrectFormat" then
 			Server._incorrectFormatHandler(handler)
-		elseif securityMeasure == "packetOverflow" then
-			Server._packetOverflowHandler(handler)
 		end
 	end,
 

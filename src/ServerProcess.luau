@@ -3,6 +3,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local Identifiers = require(script.Parent.Identifiers)
 local Output = require(script.Parent.Output)
 local TableKit = require(script.Parent.Parent.TableKit)
 
@@ -25,8 +26,6 @@ type TInboundPacket = { string | {} }
 
 local INVALID_PACKET_MESSAGE =
 	"Player %*:%* sent an invalid packet. Likely exploiter- or something interacted with the internal BridgeNet API."
-local PACKET_LIMIT_OVERFLOW =
-	"Player %*:%* has reached the packet limit of 12. Likely exploiter- or you're firing more than 12 times in the same frame."
 
 local isServer = RunService:IsServer()
 
@@ -47,11 +46,6 @@ end
 
 type TIncorrectTypeHandler = (plr: Player) -> ()
 local incorrectTypeHandler: TIncorrectTypeHandler = function(...)
-	return ...
-end
-
-type TPacketOverflowHandler = (plr: Player, packetOverflowAmount: number) -> ()
-local packetOverflowHandler: TPacketOverflowHandler = function(...)
 	return ...
 end
 
@@ -246,14 +240,14 @@ function Server._startProcess()
 
 				for i = 1, dataLen, 2 do
 					local identifier, passed = data[i], data[i + 1]
-					local callbacks = callbackMap[identifier]
-					if not callbacks then
-						continue
-					end
-					if typeof(passed) ~= "table" then
+					if typeof(identifier) ~= "string" then
 						incorrectFormatHandler(plr)
 						Output.warn(string.format("Incorrect format from player: %*:%*", plr.Name, plr.UserId))
 						break
+					end
+					local callbacks = callbackMap[identifier]
+					if not callbacks then
+						continue
 					end
 					for _, callback in callbacks do
 						RecycledSpawn(callback, plr, passed)
@@ -298,20 +292,28 @@ function Server._incorrectTypeHandler(func: (plr: Player) -> ())
 	incorrectTypeHandler = func
 end
 
-function Server._packetOverflowHandler(func: (plr: Player, num: number) -> ())
-	Output.fatalAssert(
-		typeof(func) == "function",
-		string.format("packetOverflowHandler takes a function, got %*", typeof(func))
-	)
-	packetOverflowHandler = func
-end
-
 function Server._idIntoBridge(identifier: string)
 	callbackMap[identifier] = {}
 end
 
+function Server._destroyBridge(identifier: string)
+	if callbackMap[identifier] then
+		for _, callback in callbackMap[identifier] do
+			Output.log(`deleting connection upon bridge removal: {Identifiers.FromCompressed(identifier)}`)
+			Output.log(`{tostring(callback)}`)
+		end
+	end
+	callbackMap[identifier] = nil
+end
+
 function Server._connect(identifier: string, callback: (player: Player, object: any) -> nil)
 	table.insert(callbackMap[identifier], callback)
+
+	return function()
+		local index = table.find(callbackMap[identifier], callback)
+		table.remove(callbackMap[identifier], index)
+		return
+	end
 end
 
 function Server.AllPlayers(): TPlayerType

@@ -4,6 +4,7 @@ This project uses semver.
 
 ## version 0.2.0 [unreleased]
 
+- Removed .Hook()
 - Added :Once()
 - Added :Wait()
 - Added single-player targeting

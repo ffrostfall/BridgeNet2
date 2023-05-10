@@ -5,9 +5,9 @@ registry = "test"
 [[package]]
 name = "ffrostflame/bridgenet2"
 version = "0.1.0"
-dependencies = [["TableKit", "ffrostflame/tablekit@0.1.0"]]
+dependencies = [["TableKit", "ffrostflame/tablekit@0.2.1"]]
 
 [[package]]
 name = "ffrostflame/tablekit"
-version = "0.1.0"
+version = "0.2.1"
 dependencies = []
