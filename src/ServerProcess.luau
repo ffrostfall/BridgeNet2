@@ -153,9 +153,7 @@ function Server._startProcess()
 							table.insert(structurePlr[identifier], contents)
 						end
 					end
-				end
-
-				if plrVal.type == "all" then -- Who to send the payload to
+				elseif plrVal.type == "all" then -- Who to send the payload to
 					for plr in playerList do
 						local structurePlr = sendStructure[plr]
 						if not structurePlr then -- If a structure doesn't exist for that player, create one

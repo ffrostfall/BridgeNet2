@@ -6,20 +6,6 @@ local bridge = BridgeNet2.ReferenceBridge("tester")
 
 bridge:StartLogging()
 
-bridge:OutboundMiddleware({
-	function(obj)
-		print("should print every fire")
-		return obj
-	end,
-})
-
-bridge:InboundMiddleware({
-	function(obj)
-		print("should print every receive")
-		return obj
-	end,
-})
-
 bridge:Connect(function(object)
 	print(object.TestField)
 end)
