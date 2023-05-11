@@ -272,17 +272,6 @@ local SecurityMeasures: TSecurityMeasuresEnum = {
 	@return void
 ]=]
 
---[=[
-	@prop SecurityMeasuresEnum
-	@within BridgeNet2
-	
-	A list of available security functions to override. Members:
-	 - incorrectType
-	 - incorrectFormat
-	
-	@return void
-]=]
-
 local ReturnValue = {
 	-- NetworkUtils
 

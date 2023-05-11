@@ -30,11 +30,11 @@ end
 
 --[=[
 	@function OutboundMiddleware
-		@within ServerBridge
+	@within ServerBridge
 
 
-		@param middlewareTable { (target: ServerProcess.TPlayerType, object: any) -> any }
-		@return void
+	@param middlewareTable { (target: ServerProcess.TPlayerType, object: any) -> any }
+	@return void
 ]=]
 function ServerBridge:OutboundMiddleware(middlewareTable: { (target: ServerProcess.TPlayerType, object: any) -> any })
 	self._outboundMiddleware = middlewareTable
@@ -42,12 +42,12 @@ end
 
 --[=[
 	@function Connect
-		@within ServerBridge
+	@within ServerBridge
 
-		
+	
 
-		@param middlewareTable (player: Player, object: T) -> nil
-		@return void
+	@param middlewareTable (player: Player, object: T) -> nil
+	@return void
 ]=]
 function ServerBridge:Connect(callback: (player: Player, object: any) -> nil)
 	local connection = ServerProcess._connect(self._identifier, function(player, object)
@@ -107,22 +107,38 @@ function ServerBridge:Connect(callback: (player: Player, object: any) -> nil)
 	}
 end
 
+--[=[
+	@function StartLogging
+	@within ServerBridge
+	
+	Prints every time this bridge receives or sends data
+	
+	@return void
+]=]
 function ServerBridge:StartLogging()
 	self._logging = true
 end
 
+--[=[
+	@function StartLogging
+	@within ServerBridge
+	
+	Stops logging incoming/outgoing data
+	
+	@return void
+]=]
 function ServerBridge:StopLogging()
 	self._logging = false
 end
 
 --[=[
 	@function RateLimit
-		@within ServerBridge
+	@within ServerBridge
 
 
-		@param invokesPerSecond number
-		@param overflowFunction (player: Player) -> nil
-		@return void
+	@param invokesPerSecond number
+	@param overflowFunction (player: Player) -> nil
+	@return void
 ]=]
 function ServerBridge:RateLimit(invokesPerSecond: number, overflowFunction: (player: Player) -> nil)
 	self._rateLimiting = true
@@ -132,9 +148,9 @@ end
 
 --[=[
 	@function DisableRateLimit
-		@within ServerBridge
+	@within ServerBridge
 
-		@return void
+	@return void
 ]=]
 function ServerBridge:DisableRateLimit()
 	self._rateLimiting = false
