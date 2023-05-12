@@ -128,6 +128,23 @@ function ClientBridge:StopLogging()
 	self._logging = false
 end
 
+function ClientBridge:Wait()
+	local thread = coroutine.running()
+	self:Connect(function(player, object)
+		coroutine.resume(thread, player, object)
+	end)
+	return coroutine.yield()
+end
+
+function ClientBridge:Once(func: (object: any) -> ())
+	local connection
+	connection = self:Connect(function(object)
+		connection:Disconnect()
+		func(object)
+	end)
+	return connection
+end
+
 function ClientBridge:Destroy()
 	table.clear(self)
 	setmetatable(self, nil)

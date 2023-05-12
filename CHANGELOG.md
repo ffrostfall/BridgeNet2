@@ -2,6 +2,10 @@
 
 This project uses semver.
 
+## version 0.2.1
+
+- Added :Once() and :Wait() to ClientBridge
+
 ## version 0.2.0
 
 - Removed .Hook()
