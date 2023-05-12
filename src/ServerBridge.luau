@@ -50,6 +50,9 @@ end
 	@return void
 ]=]
 function ServerBridge:Connect(callback: (player: Player, object: any) -> nil)
+	local methods = {
+		Connected = true
+	}
 	local connection = ServerProcess._connect(self._identifier, function(player, object)
 		if self._rateLimiting then
 			if self._rateMap[player] ~= nil then
@@ -99,12 +102,13 @@ function ServerBridge:Connect(callback: (player: Player, object: any) -> nil)
 			callback(player, object)
 		end
 	end)
+	
+	methods["Disconnect"] = function()
+		connection()
+		methods.Connected = false
+	end
 
-	return {
-		Disconnect = function()
-			connection()
-		end,
-	}
+	return methods
 end
 
 --[=[
