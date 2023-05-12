@@ -80,6 +80,9 @@ function ClientBridge:Fire(object)
 end
 
 function ClientBridge:Connect(callback: (object: any) -> ())
+	local methods = {
+		Connected = true,
+	}
 	local disconnect = ClientProcess._connect(self._identifier, function(object)
 		if self._inboundMiddleware ~= nil then
 			local result = object
@@ -113,11 +116,12 @@ function ClientBridge:Connect(callback: (object: any) -> ())
 		end
 	end)
 
-	return {
-		Disconnect = function()
-			disconnect()
-		end,
-	}
+	methods["Disconnect"] = function()
+		disconnect()
+		methods.Connected = false
+	end
+
+	return methods
 end
 
 function ClientBridge:StartLogging()
