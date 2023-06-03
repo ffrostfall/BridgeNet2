@@ -275,7 +275,7 @@ function Server._addToQueue(plrs: TPlayerType | Player, identifier: string, payl
 end
 
 function Server._incorrectFormatHandler(func: (plr: Player) -> ())
-	Output.fatalAssert(
+	Output.errorAssert(
 		typeof(func) == "function",
 		string.format("incorrectFormatHandler takes a function, got %*", typeof(func))
 	)
@@ -283,7 +283,7 @@ function Server._incorrectFormatHandler(func: (plr: Player) -> ())
 end
 
 function Server._incorrectTypeHandler(func: (plr: Player) -> ())
-	Output.fatalAssert(
+	Output.errorAssert(
 		typeof(func) == "function",
 		string.format("incorrectTypeHandler takes a function, got %*", typeof(func))
 	)

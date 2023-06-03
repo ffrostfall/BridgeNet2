@@ -4,6 +4,8 @@ This project uses semver.
 
 ## version 0.2.1
 
+- Fixed a bug w/ :Wait() on ClientBridge
+- Default format/type security errors no longer throw
 - Added :Once() and :Wait() to ClientBridge
 
 ## version 0.2.0

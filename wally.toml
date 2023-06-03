@@ -1,6 +1,6 @@
 [package]
 name = "ffrostflame/bridgenet2"
-version = "0.2.0"
+version = "0.2.1"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 description = "The successor to BridgeNet, BridgeNet2 is a blazing-fast networking library designed for scale and performance."

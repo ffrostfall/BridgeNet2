@@ -130,8 +130,8 @@ end
 
 function ClientBridge:Wait()
 	local thread = coroutine.running()
-	self:Connect(function(player, object)
-		coroutine.resume(thread, player, object)
+	self:Connect(function(object)
+		coroutine.resume(thread, object)
 	end)
 	return coroutine.yield()
 end
