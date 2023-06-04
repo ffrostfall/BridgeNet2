@@ -216,7 +216,7 @@ function Server._startProcess()
 							if loadingPlayersQueue[plr][identifier] == nil then -- Reconciliation
 								loadingPlayersQueue[plr][identifier] = value
 							else
-								TableKit.MergeArray(loadingPlayersQueue[plr][identifier], value)
+								TableKit.MergeArrays(loadingPlayersQueue[plr][identifier], value)
 							end
 						end
 					end

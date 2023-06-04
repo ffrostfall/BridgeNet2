@@ -2,6 +2,10 @@
 
 This project uses semver.
 
+## version 0.2.2
+
+- Hotfix
+
 ## version 0.2.1
 
 - Fixed a bug w/ :Wait() on ClientBridge
