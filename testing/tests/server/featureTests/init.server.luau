@@ -5,9 +5,9 @@ local BridgeNet2 = require(ReplicatedStorage.Packages.bridgenet2)
 
 local bridge = BridgeNet2.ReferenceBridge("tester")
 
-bridge:StartLogging()
+local t = BridgeNet2.ReferenceBridge("test")
 
-task.wait(5)
+t:Connect(function(player, content) end)
 
 bridge
 	:Connect(function()
@@ -18,8 +18,6 @@ bridge
 bridge:Once(function()
 	print("should print once")
 end)
-
-print(bridge:Wait())
 
 while true do
 	--[[bridge:Fire(BridgeNet2.PlayersExcept({ Players:GetPlayers()[2] }), {

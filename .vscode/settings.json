@@ -1,3 +1,7 @@
 {
-	"robloxLsp.workspace.rojoProjectFile": "testing"
+	"robloxLsp.workspace.rojoProjectFile": "testing",
+	"luau-lsp.completion.imports.separateGroupsWithLine": true,
+	"luau-lsp.completion.imports.enabled": true,
+	"luau-lsp.sourcemap.rojoProjectFile": "testing.project.json",
+	"luau-lsp.completion.imports.requireStyle": "alwaysRelative"
 }

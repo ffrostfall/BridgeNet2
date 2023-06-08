@@ -2,7 +2,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
-local Output = require(script.Parent.Output)
+local Output = require(script.Parent.Parent.Utilities.Output)
+local RecycledSpawn = require(script.Parent.Parent.Utilities.RecycledSpawn)
 
 type TData = { [any]: any }
 
@@ -11,38 +12,15 @@ local inboundQueue: { { [string]: { { [any]: any } } } } = {}
 
 local callbackMap: { [string]: { (object: any) -> () } } = {}
 
-local freeThread: thread? -- Thread reusage
-local func = nil
+local ClientProcess = {}
 
-local function passer(payload)
-	local acquiredThread = freeThread
-	freeThread = nil
-	func(payload)
-	freeThread = acquiredThread
-end
-
-local function yielder()
-	while true do
-		passer(coroutine.yield())
-	end
-end
-
-local function RecycledSpawn(payload)
-	if not freeThread then
-		freeThread = coroutine.create(yielder)
-		coroutine.resume(freeThread)
-	end
-	task.spawn(freeThread :: thread, payload)
-end
-
-local Client = {}
-
-function Client._startProcess()
+function ClientProcess.start()
 	debug.setmemorycategory("BridgeNet2")
 	Output.log("Loading BridgeNet2")
 
-	local DataRemoteEvent: RemoteEvent = ReplicatedStorage:WaitForChild("DataRemoteEvent")
-	local MetaRemoteEvent: RemoteEvent = ReplicatedStorage:WaitForChild("MetaRemoteEvent")
+	-- :WaitForChild() to confirm instances exist, we're in another thread.
+	local DataRemoteEvent: RemoteEvent = ReplicatedStorage:WaitForChild("dataRemoteEvent")
+	local MetaRemoteEvent: RemoteEvent = ReplicatedStorage:WaitForChild("metaRemoteEvent")
 
 	DataRemoteEvent.OnClientEvent:Connect(function(receivedData: { [string]: { TData } })
 		table.insert(inboundQueue, receivedData)
@@ -51,14 +29,15 @@ function Client._startProcess()
 	RunService.PostSimulation:Connect(function()
 		debug.profilebegin("BridgeNet2")
 
+		-- Client-sided sending is extremely simple.
 		if #outboundQueue > 0 then
 			DataRemoteEvent:FireServer(outboundQueue)
 			table.clear(outboundQueue)
 		end
 
-		for index, obj in inboundQueue do
-			debug.profilebegin("packet")
-			for identifier, data in obj do
+		debug.profilebegin("BridgeNet2:Receive")
+		for _, incomingPacket in inboundQueue do
+			for identifier, data in incomingPacket do
 				local calls = callbackMap[identifier]
 
 				if not calls then
@@ -67,24 +46,20 @@ function Client._startProcess()
 
 				if #calls == 1 then
 					local callback = calls[1]
-					for _, object in data do
-						func = callback
-						RecycledSpawn(object)
+					for _, content in data do
+						RecycledSpawn(callback, content)
 					end
 				else
-					for _, object in data do
+					for _, content in data do
 						for _, callback in calls do
-							func = callback
-							RecycledSpawn(object)
+							RecycledSpawn(callback, content)
 						end
 					end
 				end
 			end
-
-			inboundQueue[index] = nil
-			debug.profileend()
 		end
 
+		table.clear(inboundQueue)
 		debug.profileend()
 	end)
 
@@ -95,24 +70,26 @@ function Client._startProcess()
 		for _ = 1, 15 do
 			task.wait()
 		end
-		MetaRemoteEvent:FireServer("/1")
+		MetaRemoteEvent:FireServer("1")
 	end)
 
 	Output.log("Loaded")
 end
 
-function Client._idIntoBridge(identifier: string)
+function ClientProcess.registerBridge(identifier: string)
 	callbackMap[identifier] = {}
 end
 
-function Client._addToQueue(identifier: string, object: {})
+function ClientProcess.addToQueue(identifier: string, object: {})
+	-- Every even number should be content, every odd number should be the identifier.
 	table.insert(outboundQueue, identifier)
 	table.insert(outboundQueue, object)
 end
 
-function Client._connect(identifier: string, callback: (object: any) -> ())
+function ClientProcess.connect(identifier: string, callback: (object: any) -> ())
 	table.insert(callbackMap[identifier], callback)
 
+	-- Disconnect function
 	return function()
 		local index = table.find(callbackMap[identifier], callback)
 		table.remove(callbackMap[identifier], index)
@@ -120,4 +97,4 @@ function Client._connect(identifier: string, callback: (object: any) -> ())
 	end
 end
 
-return Client
+return ClientProcess

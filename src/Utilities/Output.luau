@@ -1,22 +1,11 @@
 --!strict
 local RunService = game:GetService("RunService")
 
-type ESeverityLevel = "log" | "warn" | "error" | "fatal"
-type TOutputObject = {
-	Severity: ESeverityLevel,
-	Text: string,
-}
-type TSeverityLevelEnum = {
-	Log: "log",
-	Warn: "warn",
-	Error: "error",
-	Fatal: "fatal",
-}
-
 local PATTERN = if RunService:IsServer() then "[BridgeNet2] %*" else "[BridgeNet2] %*"
-local ERROR_PATTERN = if RunService:IsServer() then "[BridgeNet2:S] %*" else "[BridgeNet2:C] %*"
 
 local Output = {}
+
+type allTypes = "string" | "number" | "function" | "table"
 
 function Output.silent(info: string)
 	if RunService:IsStudio() then
@@ -44,18 +33,16 @@ function Output.warnAssert(condition: boolean, info: string)
 	end
 end
 
-function Output.error(info: string)
-	task.spawn(error, string.format(ERROR_PATTERN, info))
-end
-
-function Output.errorAssert(condition: boolean, info: string)
-	if not condition then
-		task.spawn(Output.error, info)
-	end
+function Output.typecheck(expectedType: allTypes, funcName: string, paramName: string, param: unknown)
+	local resultType: allTypes = typeof(param) :: allTypes
+	Output.fatalAssert(
+		resultType == expectedType,
+		`{funcName} parameter {paramName} takes {expectedType}, got {resultType}`
+	)
 end
 
 function Output.fatal(info: string)
-	error(string.format(ERROR_PATTERN, info))
+	error(`[BridgeNet2:{if RunService:IsServer() then "S" else "C"}]: {info}`)
 end
 
 function Output.fatalAssert(condition: boolean, info: string)

@@ -1,11 +1,9 @@
+--!strict
+local ClientIdentifiers = require(script.Parent.ClientIdentifiers)
 local ClientProcess = require(script.Parent.ClientProcess)
-local Identifiers = require(script.Parent.Identifiers)
-local Output = require(script.Parent.Output)
-local TableKit = require(script.Parent.Parent.TableKit)
-
---[=[
-	@class ClientBridge
-]=]
+local Output = require(script.Parent.Parent.Utilities.Output)
+local TableKit = require(script.Parent.Parent.Parent.TableKit)
+local RemotePacketSizeCounter = require(script.Parent.Parent.Parent.RemotePacketSizeCounter)
 
 local function toStringData(data)
 	return TableKit.ToString(data)
@@ -15,11 +13,11 @@ local ClientBridge = {}
 ClientBridge.__index = ClientBridge
 
 function ClientBridge:RateLimit()
-	Output.error("cannot call :RateLimit() from client")
+	Output.warn("cannot call :RateLimit() from client")
 end
 
 function ClientBridge:DisableRateLimit()
-	Output.error("cannot call :DisableRateLimit() from client")
+	Output.warn("cannot call :DisableRateLimit() from client")
 end
 
 function ClientBridge:InboundMiddleware(middlewareTable: { (object: any) -> any })
@@ -27,7 +25,7 @@ function ClientBridge:InboundMiddleware(middlewareTable: { (object: any) -> any 
 		typeof(middlewareTable) == "table",
 		string.format("InboundMiddleware takes table, got %*", typeof(middlewareTable))
 	)
-	Output.errorAssert(TableKit.IsArray(middlewareTable), "InboundMiddleware takes array, got dictionary.")
+	Output.warnAssert(TableKit.IsArray(middlewareTable), "InboundMiddleware takes array, got dictionary.")
 
 	self._inboundMiddleware = middlewareTable
 end
@@ -37,7 +35,7 @@ function ClientBridge:OutboundMiddleware(middlewareTable: { (object: any) -> any
 		typeof(middlewareTable) == "table",
 		string.format("OutboundMiddleware takes table, got %*", typeof(middlewareTable))
 	)
-	Output.errorAssert(TableKit.IsArray(middlewareTable), "InboundMiddleware takes array, got dictionary.")
+	Output.warnAssert(TableKit.IsArray(middlewareTable), "InboundMiddleware takes array, got dictionary.")
 
 	self._outboundMiddleware = middlewareTable
 end
@@ -65,22 +63,30 @@ function ClientBridge:Fire(object)
 			end
 		end
 
-		if self._logging then
-			Output.log(`fired {self._name} with data {toStringData(result)}`)
+		if self.Logging then
+			Output.log(
+				`fired {self._name} with data \n---------------\n{toStringData(result)}\n---------------\n({RemotePacketSizeCounter.GetDataByteSize(
+					result
+				)})\n`
+			)
 		end
 
-		ClientProcess._addToQueue(self._identifier, result)
+		ClientProcess.addToQueue(self._identifier, result)
 	else
-		if self._logging then
-			Output.log(`fired {self._name} with data {toStringData(object)}`)
+		if self.Logging then
+			Output.log(
+				`fired {self._name} with data \n---------------\n{toStringData(object)}\n---------------\n({RemotePacketSizeCounter.GetDataByteSize(
+					object
+				)})\n`
+			)
 		end
 
-		ClientProcess._addToQueue(self._identifier, object)
+		ClientProcess.addToQueue(self._identifier, object)
 	end
 end
 
 function ClientBridge:Connect(callback: (object: any) -> ())
-	local disconnect = ClientProcess._connect(self._identifier, function(object)
+	local disconnect = ClientProcess.connect(self._identifier, function(object)
 		if self._inboundMiddleware ~= nil then
 			local result = object
 
@@ -99,14 +105,22 @@ function ClientBridge:Connect(callback: (object: any) -> ())
 				end
 			end
 
-			if self._logging then
-				Output.log(`bridge {self._name} got fired from server with data {toStringData(result)}`)
+			if self.Logging then
+				Output.log(
+					`bridge {self._name} got fired from server with data \n---------------\n{toStringData(result)}\n---------------\n({RemotePacketSizeCounter.GetDataByteSize(
+						result
+					)})\n`
+				)
 			end
 
 			callback(result)
 		else
-			if self._logging then
-				Output.log(`bridge {self._name} got fired from server with data {toStringData(object)}`)
+			if self.Logging then
+				Output.log(
+					`bridge {self._name} got fired from server with data \n---------------\n{toStringData(object)}\n---------------\n({RemotePacketSizeCounter.GetDataByteSize(
+						object
+					)})\n`
+				)
 			end
 
 			callback(object)
@@ -120,15 +134,8 @@ function ClientBridge:Connect(callback: (object: any) -> ())
 	}
 end
 
-function ClientBridge:StartLogging()
-	self._logging = true
-end
-
-function ClientBridge:StopLogging()
-	self._logging = false
-end
-
 function ClientBridge:Wait()
+	-- Again, very basic QoL implementation of :Wait()
 	local thread = coroutine.running()
 	self:Connect(function(object)
 		coroutine.resume(thread, object)
@@ -137,30 +144,39 @@ function ClientBridge:Wait()
 end
 
 function ClientBridge:Once(func: (object: any) -> ())
+	-- Instantly disconnects. Very basic QoL implementation
 	local connection
 	connection = self:Connect(function(object)
 		connection:Disconnect()
 		func(object)
 	end)
+
 	return connection
 end
 
 function ClientBridge:Destroy()
+	-- Don't actually do any logic here- remember that ClientBridges are really just listening objects that let the end user communicate.
 	table.clear(self)
 	setmetatable(self, nil)
 end
 
+--[=[
+	@class ClientBridge
+]=]
 return function(name: string)
 	local self = setmetatable({
-		_identifier = Identifiers.ReferenceIdentifier(name),
+		_identifier = ClientIdentifiers.ref(name),
 		_name = name,
+
+		Logging = false,
 
 		-- middleware
 		_inboundMiddleware = {},
 		_outboundMiddleware = {},
-	} :: {}, ClientBridge)
+	}, ClientBridge)
 
-	ClientProcess._idIntoBridge(self._identifier)
+	-- Identifiers can be created by the end user too, so we have to tell BridgeNet2 that it's a bridge, not an identifier.
+	ClientProcess.registerBridge(self._identifier)
 
 	return self
 end

@@ -4,10 +4,15 @@ registry = "test"
 
 [[package]]
 name = "ffrostflame/bridgenet2"
-version = "0.2.1"
-dependencies = [["TableKit", "ffrostflame/tablekit@0.2.1"]]
+version = "0.2.2"
+dependencies = [["RemotePacketSizeCounter", "pysephwasntavailable/remotepacketsizecounter@2.0.0"], ["TableKit", "ffrostflame/tablekit@0.2.2"]]
 
 [[package]]
 name = "ffrostflame/tablekit"
-version = "0.2.1"
+version = "0.2.2"
+dependencies = []
+
+[[package]]
+name = "pysephwasntavailable/remotepacketsizecounter"
+version = "2.0.0"
 dependencies = []

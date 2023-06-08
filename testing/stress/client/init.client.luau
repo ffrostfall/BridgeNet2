@@ -11,5 +11,5 @@ if TestType.Value == "roblox" then
 elseif TestType.Value == "bridgenet2" then
 	local Bridge = BridgeNet2.ReferenceBridge("test")
 
-	Bridge:Connect(function(player, object) end)
+	Bridge:Connect(function(_, _) end)
 end

@@ -1,76 +1,26 @@
+--!strict
 local RunService = game:GetService("RunService")
 
-local Identifiers = require(script.Identifiers)
-local Server = require(script.ServerProcess)
-local Client = require(script.ClientProcess)
-local NetworkUtils = require(script.NetworkUtils)
-local Output = require(script.Output)
-local ServerBridge = require(script.ServerBridge)
-local ClientBridge = require(script.ClientBridge)
+local BridgeNet2 = require(script.BridgeNet2)
+local Client = require(script.Client)
+local Server = require(script.Server)
+local NetworkUtils = require(script.Utilities.NetworkUtils)
+local Output = require(script.Utilities.Output)
 
 local isServer = RunService:IsServer()
 
 task.spawn(function()
-	Output.silent("Starting BridgeNet2 identifier process")
-	Identifiers._startProcess()
-	Output.silent("Starting BridgeNet2 object format process")
 	if isServer then
-		Output.log("Starting BridgeNet2 server process")
-		Server._startProcess()
+		Server.start()
 	else
-		Output.log("Starting BridgeNet2 client process")
-		Client._startProcess()
+		Client.start()
 	end
 end)
-
-export type ESeverityLevel = "log" | "warn" | "error" | "fatal"
-export type TOutputObject = {
-	Severity: ESeverityLevel,
-	Text: string,
-}
-
-export type ESecurityMeasures = "incorrectFormat" | "incorrectType" | "packetOverflow"
--- We have to have this type because Luau has no string literal inference and the type will resolve to "string"
-type TSecurityMeasuresEnum = {
-	IncorrectFormat: "incorrectFormat",
-	IncorrectType: "incorrectType",
-	PacketOverflow: "packetOverflow",
-}
-
-local SecurityMeasures: TSecurityMeasuresEnum = {
-	IncorrectFormat = "incorrectFormat",
-	IncorrectType = "incorrectType",
-	PacketOverflow = "packetOverflow",
-}
 
 --[=[
 	@class BridgeNet2
 	
 	The root namespace of BridgeNet2.
-]=]
-
---[=[
-	@function NumberToBestForm
-	@within BridgeNet2
-
-	Takes a number, and converts it into its most network efficient form. This works because a number is 9 bytes- but strings are (stringLen)+2,
-	so a 1-character string to store a 1-digit number is more efficient than sending it as an actual number. This is way better- and it shows up
-	at any real, practical scale. If you send this number over, you should **always** be calling tonumber on it! That is NOT optional.
-
-	```lua
-	-- "Example hexadecimal string" in ASCII
-	local smallNumber = 4
-	local bigNumber = 1000000000
-
-	local smallNumberBestForm = BridgeNet2.NumberToBestForm(smallNumber)
-	print(typeof(smallNumberBestForm)) -- prints "string"
-	
-	local bigNumberBestForm = BridgeNet2.NumberToBestForm(bigNumber)
-	print(typeof(bigNumberBestForm)) -- prints "number"
-	```
-
-	@param number number
-	@return string | number
 ]=]
 
 --[=[
@@ -264,56 +214,38 @@ local SecurityMeasures: TSecurityMeasuresEnum = {
 ]=]
 
 --[=[
-	@function SetSecurity
+	@function HandleInvalidPlayer
 	@within BridgeNet2
 	
-	Allows you to set custom functions for when a client sends incorrect data.
+	Allows you to set a custom function for when a client sends an incorrect format.
+	This should be used to implement something like a ban system, or a logging system.
 	
 	@return void
 ]=]
 
-local ReturnValue = {
-	-- NetworkUtils
+return (
+	table.freeze({
+		ToHex = NetworkUtils.ToHex,
+		ToReadableHex = NetworkUtils.ToReadableHex,
+		FromHex = NetworkUtils.FromHex,
+		CreateUUID = NetworkUtils.CreateUUID,
 
-	NumberToBestForm = NetworkUtils.NumberToBestForm,
+		--- Identifiers
+		ReferenceIdentifier = if isServer then Server.makeIdentifier else Client.makeIdentifier,
+		Deserialize = if isServer then Server.deser else Client.deser,
+		Serialize = if isServer then Server.ser else Client.ser,
 
-	ToHex = NetworkUtils.ToHex,
+		-- PlayerContainers
+		AllPlayers = Server.playerContainers().All,
+		PlayersExcept = Server.playerContainers().Except,
+		Players = Server.playerContainers().Players,
 
-	ToReadableHex = NetworkUtils.ToReadableHex,
+		--- test
+		ReferenceBridge = if isServer then Server.makeBridge else Client.makeBridge,
 
-	FromHex = NetworkUtils.FromHex,
-
-	CreateUUID = NetworkUtils.CreateUUID,
-
-	-- Identifiers
-	ReferenceIdentifier = Identifiers.ReferenceIdentifier,
-	FromCompressed = Identifiers.FromCompressed,
-
-	FromIdentifier = Identifiers.FromIdentifier,
-
-	-- Players
-
-	AllPlayers = Server.AllPlayers,
-	PlayersExcept = Server.PlayersExcept,
-
-	Players = Server.Players,
-
-	ReferenceBridge = if isServer then ServerBridge else ClientBridge,
-
-	SetSecurity = function(
-		securityMeasure: ESecurityMeasures,
-		handler: (player: Player) -> () | (player: Player, num: number?) -> ()
-	)
-		Output.fatalAssert(isServer, "Cannot call SetSecurity from client")
-
-		if securityMeasure == "incorrectType" then
-			Server._incorrectTypeHandler(handler)
-		elseif securityMeasure == "incorrectFormat" then
-			Server._incorrectFormatHandler(handler)
-		end
-	end,
-
-	SecurityMeasuresEnum = SecurityMeasures,
-}
-
-return ReturnValue
+		HandleInvalidPlayer = function(handler: (player: Player) -> ())
+			Output.fatalAssert(isServer, "Cannot call from client")
+			Server.invalidPlayerhandler(handler)
+		end,
+	}) :: unknown
+) :: BridgeNet2.BridgeNet2

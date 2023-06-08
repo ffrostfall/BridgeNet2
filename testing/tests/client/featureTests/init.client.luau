@@ -4,7 +4,7 @@ local BridgeNet2 = require(ReplicatedStorage.Packages.bridgenet2)
 
 local bridge = BridgeNet2.ReferenceBridge("tester")
 
-bridge:StartLogging()
+bridge.Logging = true
 
 bridge:Connect(function(object)
 	print(object.TestField)
