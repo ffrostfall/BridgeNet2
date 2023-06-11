@@ -6,6 +6,6 @@
 
 A multi-paradigm, blazingly fast & highly equipped networking library for Roblox.
 
-Documentation
+[Documentation](https://ffrostflame.github.io/BridgeNet2/)
 
 </div>
