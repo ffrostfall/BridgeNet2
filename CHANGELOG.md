@@ -1,41 +1,90 @@
 # BridgeNet2
 
-This project uses [semver](https://semver.org/spec/v2.0.0.html).
+This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
-## version 0.3.0: 6/8/2023
+## version 0.4.0
+
+### **Added**
+
+- Added `BridgeNet2.ServerBridge` and `BridgeNet2.ClientBridge` constructors- they are identical to ReferenceBridge, just with better types. The current ReferenceBridge will not be deprecated or affected by this.
+- Instead of being limited to tables, you can now pass any type into :Fire(). This means you can finally pass in nil values to :Fire() too.
+
+### **Fixes**
+
+- Fixed rate limiting
+- Re-added methods on the `Bridge` type to types
+
+### **Improvements**
+
+- Added `Connection` type to `Bridge:Connect()` functions
+- `RateLimitActive` is now a public boolean that can be set by the user
+- Improved error messages
+- Improved logger readability.
+- I made a script to automate releases- there should hopefully be less inconsistencies with releases from now on.
+
+## [version 0.3.0](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.3.0): 6/8/2023
+
+### **Added**
 
 - Added Hoarcekat support
-- Massive internal re-structuring
-- Renamed `FromIdentifier` and `FromCompressed` to `Serialize` and `Deserialize`
+
+### **Removed**
+
 - NumberToBestForm removed (feature bloat)
 - StartLogging and StopLogging have been removed in favor of `object.Logging =`
-- Logging now displays the packet size in bytes (using @PysephWasntAvailable's [RemotePacketSizeCounter](https://github.com/PysephWasntAvailable/RemotePacketSizeCounter) package)
-- Compliant with strict Luau typing
-- Type improvements
+
+### **Fixes**
+
+- Literally dozens of bugfixes
+
+### **Improvements**
+
+- Massive internal re-structuring
+- Renamed `FromIdentifier` and `FromCompressed` to `Serialize` and `Deserialize`
 - Internally commented the entire project
 - Removed SetSecurity and SecurityEnums in favor of `HandleInvalidPlayer`
-- Literally dozens of bugfixes
+- Type improvements
+- Logging now displays the packet size in bytes (using @PysephWasntAvailable's [RemotePacketSizeCounter](https://github.com/PysephWasntAvailable/RemotePacketSizeCounter) package)
+- Compliant with strict Luau typing
 
 ## version 0.2.2
 
+### **Fixes**
+
 - Hotfix
 
-## version 0.2.1
+## [version 0.2.1](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.2.1): 6/3/2023
 
-- Fixed a bug w/ :Wait() on ClientBridge
-- Default format/type security errors no longer throw
+### **Added**
+
 - Added :Once() and :Wait() to ClientBridge
 
-## version 0.2.0
+### **Fixes**
 
-- Removed .Hook()
+- Fixed a bug w/ :Wait() on ClientBridge
+
+### **Improvements**
+
+- Default format/type security errors no longer throw
+
+## [version 0.2.0](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.2.0): 5/11/2023
+
+### **Added**
+
 - Added :Once()
 - Added :Wait()
 - Added :StartLogging() and :StopLogging()
 - Added :Disconnect() to connections
-- "Silent" logs will display only in studio
-- Added single-player targeting
 
-## version 0.1.0
+### **Removed**
+
+- Removed .Hook()
+
+### **Improvements**
+
+- Added single-player targeting
+- "Silent" logs will display only in studio
+
+## [version 0.1.0](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.1.0): 2/19/2023
 
 - Release

@@ -9,15 +9,12 @@ local TableKit = require(script.Parent.Parent.Parent.TableKit)
 local Types = require(script.Parent.Parent.Types)
 local RecycledSpawn = require(script.Parent.Parent.Utilities.RecycledSpawn)
 
-local INVALID_PACKET_MESSAGE =
-	"Player %*:%* sent an invalid packet. Likely exploiter- or something interacted with the internal BridgeNet API."
-
 local playerList: Types.Set<Player> = {}
 local loadingPlayers: Types.Map<Player, number?> = {}
 local loadingPlayersQueue: Types.Map<Player, Types.Map<Types.Identifier, Types.Array<Types.Content>>> = {}
 
 local outboundQueue: Types.Array<Types.ServerOutboundPacket> = {}
-local inboundQueue: Types.Map<Player, Types.Array<Types.Content>> = {}
+local inboundQueue: Types.Map<Player, Types.Array<Types.Array<Types.Content>>> = {}
 
 local callbackMap: Types.Map<Types.Identifier, Types.Array<Types.ServerConnectionCallback>> = {}
 
@@ -73,24 +70,12 @@ function ServerProcess.start()
 
 		dataRemoteEvent.OnServerEvent:Connect(function(plr, tbl)
 			-- Do typechecking before inserting it into the queue- minimize errors in the queue.
-			if (typeof(tbl) ~= "table") or (not TableKit.IsArray(tbl)) then -- Invalid packet
+			if typeof(tbl) ~= "table" then -- Invalid packet
 				HandleInvalidPlayer(plr)
-				Output.warn(string.format(INVALID_PACKET_MESSAGE, plr.Name, plr.UserId))
 				return
 			end
 
-			-- Loop through every single packet. Run typechecking on EVERYTHING- this is the client, they could be exploiting.
-			for _, packet: Types.ServerInboundPacket in tbl do
-				local packetType = typeof(packet)
-				if packetType ~= "table" and packetType ~= "string" then
-					HandleInvalidPlayer(plr)
-					Output.warn(string.format(INVALID_PACKET_MESSAGE, plr.Name, plr.UserId))
-					return
-				end
-
-				-- We've now dealt with the typechecking part, lets move on to processing later.
-				table.insert(inboundQueue[plr], packet)
-			end
+			table.insert(inboundQueue[plr], tbl)
 		end)
 
 		local sendStructure: { [Player]: { [Types.Identifier]: { Types.Content } } } = {}
@@ -183,33 +168,32 @@ function ServerProcess.start()
 
 			debug.profilebegin("BridgeNet2:Receive")
 
-			for plr, data in inboundQueue do
-				local dataLen = #data
+			for plr, queuedPackets in inboundQueue do
+				for _, packet in queuedPackets do
+					-- Loop every other member, and include nil.
+					for i = 1, #packet, 2 do
+						-- Every odd member in the array should be content, every even number should be an identifier.
+						local content: Types.Content, identifier: Types.Identifier =
+							packet[i] :: Types.Content, packet[i + 1] :: Types.Identifier
+						-- don't use warnAssert here because we need to run HandleInvalidPlayer
+						if typeof(identifier) ~= "string" then
+							HandleInvalidPlayer(plr)
+							break
+						end
 
-				-- Loop every other member, and include nil.
-				for i = 1, dataLen, 2 do
-					-- Every odd member in the array should be content, every even number should be an identifier.
-					local identifier: string, passed: Types.Content = data[i] :: string, data[i + 1] :: Types.Content
+						-- Ensure there are connections in the first place before looping
+						local callbacks = callbackMap[identifier]
+						if not callbacks then
+							continue
+						end
 
-					-- don't use warnAssert here because we need to run HandleInvalidPlayer
-					if typeof(identifier) ~= "string" then
-						HandleInvalidPlayer(plr)
-						Output.warn(string.format("Incorrect format from player: %*:%*", plr.Name, plr.UserId))
-						break
-					end
-
-					-- Ensure there are connections in the first place before looping
-					local callbacks = callbackMap[identifier]
-					if not callbacks then
-						continue
-					end
-
-					for _, callback in callbacks do
-						RecycledSpawn(callback, plr, passed)
+						for _, callback in callbacks do
+							RecycledSpawn(callback, plr, content)
+						end
 					end
 				end
 
-				table.clear(data)
+				table.clear(inboundQueue[plr])
 			end
 
 			-- End BridgeNet2 receive profile

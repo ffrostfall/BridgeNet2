@@ -3,21 +3,28 @@ local Types = require(script.Parent.Types)
 
 type ServerBridge = {
 	Fire: (self: ServerBridge, target: Player | Types.PlayerContainer, content: Types.Content) -> (),
-	Connect: (self: ServerBridge, callback: <T, K>(player: Player, content: Types.Content?) -> ()) -> (),
+	Connect: (self: ServerBridge, callback: (player: Player, content: Types.Content?) -> ()) -> Connection,
+	Once: (self: ServerBridge, callback: (player: Player, content: Types.Content?) -> ()) -> (),
+	Wait: (self: ServerBridge, callback: (player: Player, content: Types.Content?) -> ()) -> (Player, Types.Content),
+
+	RateLimitActive: boolean,
 }
 type ClientBridge = {
 	Fire: (self: ClientBridge, content: Types.Content) -> (),
-	Connect: (self: ClientBridge, callback: (content: Types.Content) -> ()) -> (),
+	Connect: (self: ClientBridge, callback: (content: Types.Content) -> ()) -> Connection,
 }
 
 type Connection = {
 	Disconnect: () -> (),
 }
 
-export type Bridge = ServerBridge & ClientBridge
+export type Bridge = ServerBridge & ClientBridge & { Logging: boolean }
 
 export type BridgeNet2 = {
 	ReferenceBridge: (name: string) -> Bridge,
+
+	ClientBridge: (name: string) -> ClientBridge,
+	ServerBridge: (name: string) -> ServerBridge,
 
 	ReferenceIdentifier: (name: string, maxWaitTime: number) -> Types.Identifier,
 

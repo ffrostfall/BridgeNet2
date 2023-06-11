@@ -4,3 +4,4 @@ build
 standalone.rbxm
 standalone
 *.rbxm
+sourcemap.json

@@ -1,12 +1,18 @@
 --!strict
 local ClientIdentifiers = require(script.Parent.ClientIdentifiers)
 local ClientProcess = require(script.Parent.ClientProcess)
+local Constants = require(script.Parent.Parent.Constants)
 local Output = require(script.Parent.Parent.Utilities.Output)
 local TableKit = require(script.Parent.Parent.Parent.TableKit)
 local RemotePacketSizeCounter = require(script.Parent.Parent.Parent.RemotePacketSizeCounter)
+local Types = require(script.Parent.Parent.Types)
 
-local function toStringData(data)
-	return TableKit.ToString(data)
+local function toStringData(data: unknown)
+	if typeof(data) == "table" then
+		return TableKit.ToString(data :: {})
+	else
+		return tostring(data)
+	end
 end
 
 local ClientBridge = {}
@@ -40,16 +46,12 @@ function ClientBridge:OutboundMiddleware(middlewareTable: { (object: any) -> any
 	self._outboundMiddleware = middlewareTable
 end
 
-function ClientBridge:Fire(object)
-	if not object then
-		object = {}
-	end
-
+function ClientBridge:Fire(content: any)
 	if self._outboundMiddleware ~= nil then
-		local result = object
+		local result = content
 
 		-- Loop through the middleware functions- raise a silent log if any of them return nil for debugging.
-		for _, middlewareFunction: (object: any) -> any in self._outboundMiddleware do
+		for _, middlewareFunction: (object: Types.Content) -> any in self._outboundMiddleware do
 			local returned = middlewareFunction(result)
 			if typeof(returned) ~= "table" then
 				Output.silent(
@@ -64,34 +66,38 @@ function ClientBridge:Fire(object)
 		end
 
 		if self.Logging then
-			Output.log(
-				`fired {self._name} with data \n---------------\n{toStringData(result)}\n---------------\n({RemotePacketSizeCounter.GetDataByteSize(
-					result
-				)})\n`
+			local logOutput = string.format(
+				Constants.CLIENT_FIRE_LOG,
+				self._name,
+				toStringData(result),
+				RemotePacketSizeCounter.GetDataByteSize(result)
 			)
+			Output.log(logOutput)
 		end
 
 		ClientProcess.addToQueue(self._identifier, result)
 	else
 		if self.Logging then
-			Output.log(
-				`fired {self._name} with data \n---------------\n{toStringData(object)}\n---------------\n({RemotePacketSizeCounter.GetDataByteSize(
-					object
-				)})\n`
+			local logOutput = string.format(
+				Constants.CLIENT_FIRE_LOG,
+				self._name,
+				toStringData(content),
+				RemotePacketSizeCounter.GetDataByteSize(content)
 			)
+			Output.log(logOutput)
 		end
 
-		ClientProcess.addToQueue(self._identifier, object)
+		ClientProcess.addToQueue(self._identifier, content)
 	end
 end
 
-function ClientBridge:Connect(callback: (object: any) -> ())
-	local disconnect = ClientProcess.connect(self._identifier, function(object)
+function ClientBridge:Connect(callback: (content: Types.Content) -> ())
+	local disconnect = ClientProcess.connect(self._identifier, function(content)
 		if self._inboundMiddleware ~= nil then
-			local result = object
+			local result = content
 
 			-- Loop through the middleware functions- raise a silent log if any of them return nil for debugging.
-			for _, middlewareFunction: (player: Player, object: any) -> any in self._inboundMiddleware do
+			for _, middlewareFunction: (object: any) -> any in self._inboundMiddleware do
 				local returned = middlewareFunction(result)
 				if typeof(returned) ~= "table" then
 					Output.silent(
@@ -106,24 +112,28 @@ function ClientBridge:Connect(callback: (object: any) -> ())
 			end
 
 			if self.Logging then
-				Output.log(
-					`bridge {self._name} got fired from server with data \n---------------\n{toStringData(result)}\n---------------\n({RemotePacketSizeCounter.GetDataByteSize(
-						result
-					)})\n`
+				local logOutput = string.format(
+					Constants.CLIENT_CONNECT_LOG,
+					self._name,
+					toStringData(result),
+					RemotePacketSizeCounter.GetDataByteSize(result)
 				)
+				Output.log(logOutput)
 			end
 
 			callback(result)
 		else
 			if self.Logging then
-				Output.log(
-					`bridge {self._name} got fired from server with data \n---------------\n{toStringData(object)}\n---------------\n({RemotePacketSizeCounter.GetDataByteSize(
-						object
-					)})\n`
+				local logOutput = string.format(
+					Constants.CLIENT_CONNECT_LOG,
+					self._name,
+					toStringData(content),
+					RemotePacketSizeCounter.GetDataByteSize(content)
 				)
+				Output.log(logOutput)
 			end
 
-			callback(object)
+			callback(content)
 		end
 	end)
 
@@ -137,18 +147,18 @@ end
 function ClientBridge:Wait()
 	-- Again, very basic QoL implementation of :Wait()
 	local thread = coroutine.running()
-	self:Connect(function(object)
-		coroutine.resume(thread, object)
+	self:Connect(function(content)
+		coroutine.resume(thread, content)
 	end)
 	return coroutine.yield()
 end
 
-function ClientBridge:Once(func: (object: any) -> ())
+function ClientBridge:Once(func: (content: Types.Content) -> ())
 	-- Instantly disconnects. Very basic QoL implementation
 	local connection
-	connection = self:Connect(function(object)
+	connection = self:Connect(function(content)
 		connection:Disconnect()
-		func(object)
+		func(content)
 	end)
 
 	return connection
@@ -165,12 +175,10 @@ end
 ]=]
 return function(name: string)
 	local self = setmetatable({
-		_identifier = ClientIdentifiers.ref(name),
-		_name = name,
-
 		Logging = false,
 
-		-- middleware
+		_identifier = ClientIdentifiers.ref(name),
+		_name = name,
 		_inboundMiddleware = {},
 		_outboundMiddleware = {},
 	}, ClientBridge)

@@ -2,14 +2,15 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local Types = require(script.Parent.Parent.Types)
 local Output = require(script.Parent.Parent.Utilities.Output)
 local RecycledSpawn = require(script.Parent.Parent.Utilities.RecycledSpawn)
 
-type TData = { [any]: any }
+local outboundQueue: { string | any } = {}
+-- Cannot use # operator because of potentially nil values
+local outboundQueueLength: number = 0
 
-local outboundQueue: { string | {} } = {}
 local inboundQueue: { { [string]: { { [any]: any } } } } = {}
-
 local callbackMap: { [string]: { (object: any) -> () } } = {}
 
 local ClientProcess = {}
@@ -22,7 +23,7 @@ function ClientProcess.start()
 	local DataRemoteEvent: RemoteEvent = ReplicatedStorage:WaitForChild("dataRemoteEvent")
 	local MetaRemoteEvent: RemoteEvent = ReplicatedStorage:WaitForChild("metaRemoteEvent")
 
-	DataRemoteEvent.OnClientEvent:Connect(function(receivedData: { [string]: { TData } })
+	DataRemoteEvent.OnClientEvent:Connect(function(receivedData)
 		table.insert(inboundQueue, receivedData)
 	end)
 
@@ -32,6 +33,7 @@ function ClientProcess.start()
 		-- Client-sided sending is extremely simple.
 		if #outboundQueue > 0 then
 			DataRemoteEvent:FireServer(outboundQueue)
+			outboundQueueLength = 0
 			table.clear(outboundQueue)
 		end
 
@@ -76,17 +78,20 @@ function ClientProcess.start()
 	Output.log("Loaded")
 end
 
-function ClientProcess.registerBridge(identifier: string)
+function ClientProcess.registerBridge(identifier: Types.Identifier)
 	callbackMap[identifier] = {}
 end
 
-function ClientProcess.addToQueue(identifier: string, object: {})
+function ClientProcess.addToQueue(identifier: Types.Identifier, object: any)
 	-- Every even number should be content, every odd number should be the identifier.
-	table.insert(outboundQueue, identifier)
-	table.insert(outboundQueue, object)
+	-- Can't use table.insert because of potential nil values
+	-- Can't use # operator because of potential nil values
+	outboundQueue[outboundQueueLength + 1] = object
+	outboundQueue[outboundQueueLength + 2] = identifier
+	outboundQueueLength += 2
 end
 
-function ClientProcess.connect(identifier: string, callback: (object: any) -> ())
+function ClientProcess.connect(identifier: Types.Identifier, callback: (content: Types.Content) -> ())
 	table.insert(callbackMap[identifier], callback)
 
 	-- Disconnect function

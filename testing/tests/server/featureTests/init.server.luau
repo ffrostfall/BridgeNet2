@@ -7,17 +7,26 @@ local bridge = BridgeNet2.ReferenceBridge("tester")
 
 local t = BridgeNet2.ReferenceBridge("test")
 
-t:Connect(function(player, content) end)
+t:Connect(function(_, _) end)
 
-bridge
+--[[bridge
 	:Connect(function()
 		print("should never print")
 	end)
-	:Disconnect()
+	:Disconnect()]]
 
-bridge:Once(function()
+--[[bridge:Once(function()
 	print("should print once")
+end)]]
+
+bridge:Connect(function()
+	--print(plr)
+	--print(data)
 end)
+
+bridge.Logging = true
+
+task.wait(1)
 
 while true do
 	--[[bridge:Fire(BridgeNet2.PlayersExcept({ Players:GetPlayers()[2] }), {
@@ -28,9 +37,9 @@ while true do
 		TestField = "Players pass",
 	})
 
-	bridge:Fire(Players:GetPlayers()[1], {
+	--[[bridge:Fire(Players:GetPlayers()[1], {
 		TestField = "Player pass",
-	})
+	})]]
 
 	task.wait(1)
 end

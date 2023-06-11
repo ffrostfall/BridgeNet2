@@ -1,4 +1,5 @@
 --!strict
+local Constants = require(script.Parent.Parent.Constants)
 local RemotePacketSizeCounter = require(script.Parent.Parent.Parent.RemotePacketSizeCounter)
 local ServerProcess = require(script.Parent.ServerProcess)
 local TableKit = require(script.Parent.Parent.Parent.TableKit)
@@ -11,7 +12,24 @@ type TOptionalCallback<T> = (() -> T) | (() -> nil) | (() -> ())
 
 -- luau requires typecasts here
 local function toStringData(data: any)
-	return TableKit.ToString(data :: {})
+	if typeof(data) == "table" then
+		if TableKit.IsArray(data) then
+			return TableKit.ToArrayString(data)
+		else
+			return TableKit.ToString(data)
+		end
+	else
+		local prefix = ""
+		local suffix = ""
+		if typeof(data) == "CFrame" then
+			prefix = "CFrame("
+			suffix = ")"
+		elseif typeof(data) == "Vector3" then
+			prefix = "Vector3("
+			suffix = ")"
+		end
+		return `{prefix}{tostring(data)}{suffix}`
+	end
 end
 
 local ServerBridge = {}
@@ -26,7 +44,7 @@ ServerBridge.__index = ServerBridge
 	@param middlewareTable { (player: Player, object: any) -> any }
 	@return void
 ]=]
-function ServerBridge:InboundMiddleware(middlewareTable: { (player: Player, object: Types.Content) -> any })
+function ServerBridge:InboundMiddleware(middlewareTable: { (player: Player, content: Types.Content) -> any })
 	self._inboundMiddleware = middlewareTable
 end
 
@@ -38,7 +56,9 @@ end
 	@param middlewareTable { (target: ServerProcess.TPlayerType, object: any) -> any }
 	@return void
 ]=]
-function ServerBridge:OutboundMiddleware(middlewareTable: { (target: Types.PlayerContainer, object: any) -> any })
+function ServerBridge:OutboundMiddleware(
+	middlewareTable: { (target: Types.PlayerContainer, content: Types.Content) -> any }
+)
 	self._outboundMiddleware = middlewareTable
 end
 
@@ -51,9 +71,9 @@ end
 	@param middlewareTable (player: Player, object: T) -> nil
 	@return void
 ]=]
-function ServerBridge:Connect(callback: (player: Player, object: any) -> nil)
-	local connection = ServerProcess.connect(self._identifier, function(player, object)
-		if self._rateLimiting then
+function ServerBridge:Connect(callback: (player: Player, content: Types.Content) -> nil)
+	local connection = ServerProcess.connect(self._identifier, function(player, content)
+		if self.RateLimitActive then
 			if self._rateMap[player] ~= nil then
 				local currentCount: number = self._rateMap[player]
 				self._rateMap[player] = currentCount + 1
@@ -61,7 +81,12 @@ function ServerBridge:Connect(callback: (player: Player, object: any) -> nil)
 				self._rateMap[player] = 1
 			end
 
-			if self._rateMap[player] > self._maxRate then
+			task.delay(1, function()
+				local currentCount: number = self._rateMap[player]
+				self._rateMap[player] = math.min(0, currentCount - 1)
+			end)
+
+			if self._rateMap[player] >= self._maxRate then
 				if not self._overflowFunction(player) then
 					return
 				end
@@ -69,10 +94,10 @@ function ServerBridge:Connect(callback: (player: Player, object: any) -> nil)
 		end
 
 		if self._inboundMiddleware ~= nil then
-			local result = object
+			local result = content
 
 			-- Loop through the middleware functions- raise a silent log if any of them don't return a table for debugging.
-			for _, middlewareFunction: (player: Player, object: any) -> any in self._inboundMiddleware do
+			for _, middlewareFunction: (player: Player, content: Types.Content) -> any in self._inboundMiddleware do
 				local returned = middlewareFunction(player, result)
 				if typeof(returned) ~= "table" then
 					Output.silent(
@@ -87,23 +112,32 @@ function ServerBridge:Connect(callback: (player: Player, object: any) -> nil)
 			end
 
 			if self.Logging then
-				Output.log(
-					`bridge {self._name} got fired from player {player.Name}:{player.UserId} with data \n---------------\n{toStringData(result)}\n---------------\n({RemotePacketSizeCounter.GetDataByteSize(
-						result
-					)})\n`
-				)
+				if self.Logging then
+					local logOutput = string.format(
+						Constants.SERVER_CONNECT_LOG,
+						self._name,
+						player.Name,
+						toStringData(content),
+						RemotePacketSizeCounter.GetDataByteSize(content)
+					)
+					Output.log(logOutput)
+				end
 			end
 
 			callback(player, result)
 		else
 			if self.Logging then
-				Output.log(
-					`bridge {self._name} got fired from player {player.Name}:{player.UserId} with data \n---------------\n{toStringData(object)}\n---------------\n({RemotePacketSizeCounter.GetDataByteSize(
-						object
-					)})\n`
+				local logOutput = string.format(
+					Constants.SERVER_CONNECT_LOG,
+					self._name,
+					player.Name,
+					toStringData(content),
+					RemotePacketSizeCounter.GetDataByteSize(content)
 				)
+				Output.log(logOutput)
 			end
-			callback(player, object)
+
+			callback(player, content)
 		end
 	end)
 
@@ -124,7 +158,7 @@ end
 	@return void
 ]=]
 function ServerBridge:RateLimit(invokesPerSecond: number, overflowFunction: (player: Player) -> nil)
-	self._rateLimiting = true
+	self.RateLimitActive = true
 	self._overflowFunction = overflowFunction
 	self._maxRate = invokesPerSecond
 end
@@ -136,7 +170,7 @@ end
 	@return void
 ]=]
 function ServerBridge:DisableRateLimit()
-	self._rateLimiting = false
+	self.RateLimitActive = false
 end
 
 --[=[
@@ -149,17 +183,26 @@ end
 ]=]
 function ServerBridge:Wait()
 	local thread = coroutine.running()
-	self:Connect(function(player, object)
-		coroutine.resume(thread, player, object)
+	self:Connect(function(player, content)
+		coroutine.resume(thread, player, content)
 	end)
 	return coroutine.yield()
 end
 
-function ServerBridge:Once(func: (player: Player, object: any) -> ())
+--[=[
+	@function Once
+	@within ServerBridge
+
+	Equivalent of RemoteEvent.OnServerEvent:Once()
+
+	@param callback (player: Player, object: unknown) -> ()
+	@return ...
+]=]
+function ServerBridge:Once(callback: (player: Player, content: Types.Content) -> ())
 	local connection
-	connection = self:Connect(function(player, object)
+	connection = self:Connect(function(player, content)
 		connection:Disconnect()
-		func(player, object)
+		callback(player, content)
 	end)
 	return connection
 end
@@ -174,7 +217,7 @@ end
 
 	@return void
 ]=]
-function ServerBridge:Fire<_, T>(target: Player | Types.PlayerContainer, object: T)
+function ServerBridge:Fire(target: Player | Types.PlayerContainer, content: any)
 	local playerContainer: Types.PlayerContainer
 
 	-- if it's a single player, then create a player container w/ type "single"
@@ -185,12 +228,15 @@ function ServerBridge:Fire<_, T>(target: Player | Types.PlayerContainer, object:
 			Output.fatal("non-player instance passed into :Fire()")
 		end
 	else
+		if typeof(target) == "nil" then
+			Output.fatal("target parameter passed into ServerBridge:Fire() is nil")
+		end
 		Output.typecheck("table", "Fire", "target", target)
 		playerContainer = target
 	end
 
 	if self._outboundMiddleware ~= nil then
-		local result = object
+		local result = content
 
 		-- Loop through the middleware functions- raise a silent log if any of them return nil for debugging.
 		for _, middlewareFunction: (object: any) -> any in self._outboundMiddleware do
@@ -208,31 +254,38 @@ function ServerBridge:Fire<_, T>(target: Player | Types.PlayerContainer, object:
 		end
 
 		if self.Logging then
-			Output.log(
-				`fired {self._name} with data \n---------------\n{toStringData(result)}\n---------------\n({RemotePacketSizeCounter.GetDataByteSize(
-					result
-				)})\n`
+			local logOutput = string.format(
+				Constants.SERVER_FIRE_LOG,
+				self._name,
+				if playerContainer.kind == "all"
+					then "{all}"
+					elseif playerContainer.kind == "single" then playerContainer.value.Name
+					else TableKit.ToArrayString(playerContainer.value),
+				toStringData(result),
+				RemotePacketSizeCounter.GetDataByteSize(result)
 			)
+			Output.log(logOutput)
 		end
 
 		ServerProcess.addToQueue(playerContainer, self._identifier, result)
 	else
 		if self.Logging then
-			local targetString
-			if typeof(target) == "Instance" then
-				targetString = target.Name
-			else
-				targetString = toStringData(target)
+			if self.Logging then
+				local logOutput = string.format(
+					Constants.SERVER_FIRE_LOG,
+					self._name,
+					if playerContainer.kind == "all"
+						then "{all}"
+						elseif playerContainer.kind == "single" then playerContainer.value.Name
+						else TableKit.ToArrayString(playerContainer.value),
+					toStringData(content),
+					RemotePacketSizeCounter.GetDataByteSize(content)
+				)
+				Output.log(logOutput)
 			end
-
-			Output.log(
-				`fired {self._name} with data \n---------------\n{toStringData(object)}\n---------------\n to players {targetString} ({RemotePacketSizeCounter.GetDataByteSize(
-					object
-				)})\n`
-			)
 		end
 
-		ServerProcess.addToQueue(playerContainer, self._identifier, object)
+		ServerProcess.addToQueue(playerContainer, self._identifier, content)
 	end
 end
 
@@ -253,7 +306,7 @@ return function(name: string)
 		Logging = false,
 
 		-- Rate limiting
-		_rateLimiting = false,
+		RateLimitActive = false,
 		_maxRate = 500,
 		_rateMap = {} :: { [Player]: number },
 		_overflowFunction = function()

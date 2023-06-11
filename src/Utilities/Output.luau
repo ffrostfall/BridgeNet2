@@ -42,7 +42,7 @@ function Output.typecheck(expectedType: allTypes, funcName: string, paramName: s
 end
 
 function Output.fatal(info: string)
-	error(`[BridgeNet2:{if RunService:IsServer() then "S" else "C"}]: {info}`)
+	error(`\n[BridgeNet2:{if RunService:IsServer() then "S" else "C"}]: {info}`)
 end
 
 function Output.fatalAssert(condition: boolean, info: string)

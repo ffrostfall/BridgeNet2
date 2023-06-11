@@ -17,6 +17,8 @@ function ServerIdentifiers.start()
 	identifierStorage = Instance.new("Folder")
 	identifierStorage.Name = "identifierStorage"
 	identifierStorage.Parent = ReplicatedStorage
+
+	ServerIdentifiers.ref("NIL_VALUE")
 end
 
 function ServerIdentifiers.ref(identifierName: string): Types.Identifier

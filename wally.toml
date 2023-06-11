@@ -7,5 +7,5 @@ description = "The successor to BridgeNet, BridgeNet2 is a blazing-fast networki
 license = "MIT"
 
 [dependencies]
-TableKit = "ffrostflame/tablekit@0.2.2"
-RemotePacketSizeCounter = "pysephwasntavailable/remotepacketsizecounter@2.0.0"
+TableKit = "ffrostflame/tablekit@0.2.4"
+RemotePacketSizeCounter = "pysephwasntavailable/remotepacketsizecounter@2.1.0"

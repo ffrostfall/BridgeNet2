@@ -48,6 +48,8 @@ function ClientIdentifiers.start()
 			compressedIdentifierMap[oldValue] = nil
 		end
 	end)
+
+	ClientIdentifiers.ref("NIL_VALUE")
 end
 
 function ClientIdentifiers.ref(identifierName: string, maxWaitTime: number?)
@@ -83,13 +85,13 @@ function ClientIdentifiers.ref(identifierName: string, maxWaitTime: number?)
 	local timeOut = task.delay(maxWaitTimeArg, function()
 		threads[thread] = nil
 
-		task.spawn(thread, "failed")
+		task.spawn(thread, nil)
 	end)
 
 	local retrievedIdentifier = coroutine.yield()
 	-- cancel the timeout thread
 
-	if retrievedIdentifier == "failed" then
+	if retrievedIdentifier == nil then
 		Output.fatal(
 			`reached max wait time for identifier {identifierName}, broke yield. Did you forget to implement it on the server?`
 		)
