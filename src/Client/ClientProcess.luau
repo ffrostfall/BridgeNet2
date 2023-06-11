@@ -31,8 +31,11 @@ function ClientProcess.start()
 		debug.profilebegin("BridgeNet2")
 
 		-- Client-sided sending is extremely simple.
-		if #outboundQueue > 0 then
-			DataRemoteEvent:FireServer(outboundQueue)
+		-- Cannot use # operator because nil values...
+		if outboundQueueLength > 0 then
+			-- We need to do this or else Roblox will tostring the table indexes.
+			-- dont even. just dont. i dont want to know.
+			DataRemoteEvent:FireServer({ table.unpack(outboundQueue, 1, outboundQueueLength) })
 			outboundQueueLength = 0
 			table.clear(outboundQueue)
 		end

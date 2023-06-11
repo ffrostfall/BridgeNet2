@@ -2,6 +2,12 @@
 
 This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## version 0.4.1
+
+### **Fixes**
+
+- Fixed some behavior w/ nil values
+
 ## [version 0.4.0](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.4.0): 6/10/2023
 
 ### **Added**
