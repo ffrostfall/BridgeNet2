@@ -144,8 +144,8 @@ readFile("CHANGELOG.md", (err, contents) => {
       })
       .then((response) => {
         changelogString.replace(
-          `version ${versionString}`,
-          `[version ${versionString}](${response.data.url})`
+          `testurl`,
+          response.data.url
         );
         writeFile("CHANGELOG.md", changelogString, (err) => {
           if (err) {
