@@ -2,7 +2,7 @@
 
 This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
-## version 0.5.0
+## [version 0.5.0](testurl): 6/21/2023
 
 ### **Added**
 
@@ -13,7 +13,7 @@ This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
 - Fixed a bug with `Bridge:Wait`
 
-## **Improvements**
+### **Improvements**
 
 - Refactored the object-oriented programming pattern used w/ Bridges
 - Connections are now their own class

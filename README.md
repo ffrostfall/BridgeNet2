@@ -2,7 +2,7 @@
 
 <img src=".moonwave/static/logo.png" width="512" />
 
-# BridgeNet2 v0.4.1
+# BridgeNet2 v0.5.0
 
 Blazing fast & opinionated networking library designed to reduce bandwidth.
 
