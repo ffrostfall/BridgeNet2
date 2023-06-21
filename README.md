@@ -6,7 +6,7 @@
 
 ## Blazing fast & opinionated networking library designed to reduce bandwidth.
 
-BridgeNet2 is a networking library for Roblox with a focus on performance. It cuts out header data from RemoteEvent calls by 7 bytes, which is beneficial because it cuts down on the total number of packets per player. This in turn decreases server bandwidth used, so you can send more data. Games using BridgeNet2 will never hit the RemoteEvent throttle limit. BridgeNet2 also decreases the amount of time to deserialize on the client by approximately 80%.
+BridgeNet2 is a networking library for Roblox with a focus on performance. It cuts out header data from RemoteEvent calls by 7 bytes, which is beneficial because it cuts down on the total number of packets per player. This in turn decreases server bandwidth used, so you can send more data. Games using BridgeNet2 will never hit the RemoteEvent throttle limit. BridgeNet2 also decreases the amount of time to deserialize packets on the client by approximately 75-80%.
 
 BridgeNet2 has a simplistic API that mirrors RemoteEvents. It does this by using `Bridge:Fire()` instead of `RemoteEvent:FireClient()`, and `Bridge:Connect()` instead of `RemoteEvent.OnServerEvent:Connect()`. BridgeNet2 wraps remoteevents, making the developers job easier, by encapsulating a complex optimization process.
 
