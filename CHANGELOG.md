@@ -2,6 +2,25 @@
 
 This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## version 0.5.0
+
+### **Added**
+
+- Added `ServerBridge.OnServerInvoke` and `ClientBridge:InvokeServer()`
+- Added `.Connected` to connections
+
+### **Fixes**
+
+- Fixed a bug with `Bridge:Wait`
+
+## **Improvements**
+
+- Refactored the object-oriented programming pattern used w/ Bridges
+- Connections are now their own class
+- Calling methods with `.` instead of `:` will now error
+- Type improvements
+- `tostring()`-ing a bridge will now return its class type
+
 ## [version 0.4.1](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.4.1): 6/11/2023
 
 ### **Fixes**

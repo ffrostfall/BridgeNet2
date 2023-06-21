@@ -1,26 +1,18 @@
 ---
-sidebar_position: 3
+sidebar_position: 2
 ---
 
 # Installation
 
-## With Wally
+## Through Wally [Recommended]
 
-1. Install [Wally](https://wally.run)
-2. Put BridgeNet2 in the ``wally.toml`` file under ``[dependencies]``
+If you're using Wally, you can simply drop this snippet in, except replace `latest` with the latest BridgeNet2 version.
+
 ```toml title="wally.toml"
 [dependencies]
-BridgeNet2 = ffrostflame/bridgenet2@0.4.0
+BridgeNet2 = "ffrostflame/bridgenet2@latest"
 ```
-3. Run ``wally install``
 
-## Without Wally
+## Standalone
 
-## Option 1: Syncing with .rbxm:
-1. Get the ``.rbxm`` file from the latest [release](https://github.com/ffrostflame/BridgeNet2/releases).
-2. Sync manually or drop into studio manually
-
-## Option 2: copying source folder:
-1. Copy the `src` folder of the repository
-2. Drop into your project
-3. Rename the folder to `BridgeNet2`
+Download `standalone.rbxm` from the [latest release](https://github.com/ffrostflame/BridgeNet2/releases/latest), and then insert it into your Roblox game.

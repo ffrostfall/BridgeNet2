@@ -1,4 +1,5 @@
 --!strict
+local ClientConnection = require(script.Parent.ClientConnection)
 local ClientIdentifiers = require(script.Parent.ClientIdentifiers)
 local ClientProcess = require(script.Parent.ClientProcess)
 local Constants = require(script.Parent.Parent.Constants)
@@ -15,18 +16,24 @@ local function toStringData(data: unknown)
 	end
 end
 
-local ClientBridge = {}
-ClientBridge.__index = ClientBridge
+local clientBridgePrototype = {}
 
-function ClientBridge:RateLimit()
+local CLASS_METATABLE = { __index = clientBridgePrototype }
+
+function CLASS_METATABLE:__tostring()
+	return "ClientBridge"
+end
+
+function clientBridgePrototype:RateLimit()
 	Output.warn("cannot call :RateLimit() from client")
 end
 
-function ClientBridge:DisableRateLimit()
+function clientBridgePrototype:DisableRateLimit()
 	Output.warn("cannot call :DisableRateLimit() from client")
 end
 
-function ClientBridge:InboundMiddleware(middlewareTable: { (object: any) -> any })
+function clientBridgePrototype:InboundMiddleware(middlewareTable: { (object: any) -> any })
+	Output.fatalAssert(tostring(self) == "ClientBridge", "InboundMiddleware called with . instead of :")
 	Output.fatalAssert(
 		typeof(middlewareTable) == "table",
 		string.format("InboundMiddleware takes table, got %*", typeof(middlewareTable))
@@ -36,7 +43,8 @@ function ClientBridge:InboundMiddleware(middlewareTable: { (object: any) -> any 
 	self._inboundMiddleware = middlewareTable
 end
 
-function ClientBridge:OutboundMiddleware(middlewareTable: { (object: any) -> any })
+function clientBridgePrototype:OutboundMiddleware(middlewareTable: { (object: any) -> any })
+	Output.fatalAssert(tostring(self) == "ClientBridge", "OutboundMiddleware called with . instead of :")
 	Output.fatalAssert(
 		typeof(middlewareTable) == "table",
 		string.format("OutboundMiddleware takes table, got %*", typeof(middlewareTable))
@@ -46,7 +54,8 @@ function ClientBridge:OutboundMiddleware(middlewareTable: { (object: any) -> any
 	self._outboundMiddleware = middlewareTable
 end
 
-function ClientBridge:Fire(content: any)
+function clientBridgePrototype:Fire(content: any)
+	Output.fatalAssert(tostring(self) == "ClientBridge", "Fire called with . instead of :")
 	if self._outboundMiddleware ~= nil then
 		local result = content
 
@@ -91,8 +100,16 @@ function ClientBridge:Fire(content: any)
 	end
 end
 
-function ClientBridge:Connect(callback: (content: Types.Content) -> ())
-	local disconnect = ClientProcess.connect(self._identifier, function(content)
+function clientBridgePrototype:Connect(callback: (content: Types.Content) -> ()): RBXScriptConnection
+	Output.fatalAssert(tostring(self) == "ClientBridge", "connect called with . instead of :")
+
+	return ClientConnection(self._identifier, function(content)
+		if typeof(content) == "table" then
+			if (content :: {})[1] == ClientIdentifiers.ref("REQUEST") then
+				return
+			end
+		end
+
 		if self._inboundMiddleware ~= nil then
 			local result = content
 
@@ -136,24 +153,37 @@ function ClientBridge:Connect(callback: (content: Types.Content) -> ())
 			callback(content)
 		end
 	end)
-
-	return {
-		Disconnect = function()
-			disconnect()
-		end,
-	}
 end
 
-function ClientBridge:Wait()
+function clientBridgePrototype:Wait()
+	Output.fatalAssert(tostring(self) == "ClientBridge", "Wait called with . instead of :")
 	-- Again, very basic QoL implementation of :Wait()
 	local thread = coroutine.running()
-	self:Connect(function(content)
+	self:Once(function(content)
 		coroutine.resume(thread, content)
 	end)
 	return coroutine.yield()
 end
 
-function ClientBridge:Once(func: (content: Types.Content) -> ())
+function clientBridgePrototype:InvokeServerAsync(content: any)
+	Output.fatalAssert(tostring(self) == "ClientBridge", "InvokeServerAsync called with . instead of :")
+	self:Fire({ ClientIdentifiers.ref("REQUEST"), content })
+	local thread = coroutine.running()
+	local connection
+	connection = ClientProcess.connect(self._identifier, function(reply)
+		if typeof(reply) ~= "table" then
+			return
+		end
+		if (reply :: {})[1] == ClientIdentifiers.ref("REQUEST") then
+			connection()
+			coroutine.resume(thread, (reply :: {})[2])
+		end
+	end)
+	return coroutine.yield()
+end
+
+function clientBridgePrototype:Once(func: (content: Types.Content) -> ())
+	Output.fatalAssert(tostring(self) == "ClientBridge", "Once called with . instead of :")
 	-- Instantly disconnects. Very basic QoL implementation
 	local connection
 	connection = self:Connect(function(content)
@@ -164,7 +194,8 @@ function ClientBridge:Once(func: (content: Types.Content) -> ())
 	return connection
 end
 
-function ClientBridge:Destroy()
+function clientBridgePrototype:Destroy()
+	Output.fatalAssert(tostring(self) == "ClientBridge", "Destroy called with . instead of :")
 	-- Don't actually do any logic here- remember that ClientBridges are really just listening objects that let the end user communicate.
 	table.clear(self)
 	setmetatable(self, nil)
@@ -179,9 +210,10 @@ return function(name: string)
 
 		_identifier = ClientIdentifiers.ref(name),
 		_name = name,
+
 		_inboundMiddleware = {},
 		_outboundMiddleware = {},
-	}, ClientBridge)
+	}, CLASS_METATABLE)
 
 	-- Identifiers can be created by the end user too, so we have to tell BridgeNet2 that it's a bridge, not an identifier.
 	ClientProcess.registerBridge(self._identifier)

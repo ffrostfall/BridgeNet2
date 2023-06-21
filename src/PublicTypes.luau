@@ -5,20 +5,28 @@ type ServerBridge = {
 	Fire: (self: ServerBridge, target: Player | Types.PlayerContainer, content: Types.Content) -> (),
 	Connect: (self: ServerBridge, callback: (player: Player, content: Types.Content?) -> ()) -> Connection,
 	Once: (self: ServerBridge, callback: (player: Player, content: Types.Content?) -> ()) -> (),
-	Wait: (self: ServerBridge, callback: (player: Player, content: Types.Content?) -> ()) -> (Player, Types.Content),
+	Wait: (self: ServerBridge, callback: (player: Player, content: Types.Content?) -> ()) -> (Player, Types.Content?),
 
+	OnServerInvoke: ((player: Player, content: Types.Content) -> ...any)?,
 	RateLimitActive: boolean,
+	Logging: boolean,
 }
 type ClientBridge = {
-	Fire: (self: ClientBridge, content: Types.Content) -> (),
-	Connect: (self: ClientBridge, callback: (content: Types.Content) -> ()) -> Connection,
+	Fire: (self: ClientBridge, content: any?) -> (),
+	Connect: (self: ClientBridge, callback: (content: Types.Content?) -> ()) -> Connection,
+	Once: (self: ClientBridge, callback: (content: Types.Content?) -> ()) -> (),
+	Wait: (self: ClientBridge, callback: (content: Types.Content?) -> ()) -> Types.Content,
+
+	InvokeServerAsync: (self: ClientBridge, content: any?) -> ...Types.Content?,
+
+	Logging: boolean,
 }
 
 type Connection = {
 	Disconnect: () -> (),
 }
 
-export type Bridge = ServerBridge & ClientBridge & { Logging: boolean }
+export type Bridge = ServerBridge & ClientBridge
 
 export type BridgeNet2 = {
 	ReferenceBridge: (name: string) -> Bridge,

@@ -4,8 +4,17 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local BridgeNet2 = require(ReplicatedStorage.Packages.bridgenet2)
 
 local bridge = BridgeNet2.ReferenceBridge("tester")
+local bridge2 = BridgeNet2.ServerBridge("tester2")
 
 local t = BridgeNet2.ReferenceBridge("test")
+
+bridge2.Logging = true
+
+bridge2.OnServerInvoke = function(plr, content)
+	print(plr)
+	print(content)
+	return "Reply"
+end
 
 t:Connect(function(_, _) end)
 
@@ -19,27 +28,21 @@ t:Connect(function(_, _) end)
 	print("should print once")
 end)]]
 
-bridge:Connect(function()
-	--print(plr)
-	--print(data)
+bridge2:Connect(function(_, data)
+	print(data)
 end)
 
-bridge.Logging = true
+bridge:Connect(function(_, data)
+	print(data)
+end)
 
 task.wait(1)
 
-while true do
-	--[[bridge:Fire(BridgeNet2.PlayersExcept({ Players:GetPlayers()[2] }), {
-		TestField = "PlayersExcept pass",
-	})]]
-
-	bridge:Fire(BridgeNet2.Players({ Players:GetPlayers()[1] }), {
-		TestField = "Players pass",
-	})
-
-	--[[bridge:Fire(Players:GetPlayers()[1], {
-		TestField = "Player pass",
-	})]]
-
+--[[while true do
+	local plr = Players:GetPlayers()[1]
+	bridge:Fire(plr, 1)
+	bridge2:Fire(plr, 2)
+	bridge:Fire(plr, 3)
+	bridge2:Fire(plr, 4)
 	task.wait(1)
-end
+end]]

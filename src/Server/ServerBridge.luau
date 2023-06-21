@@ -6,6 +6,7 @@ local TableKit = require(script.Parent.Parent.Parent.TableKit)
 local Types = require(script.Parent.Parent.Types)
 local Output = require(script.Parent.Parent.Utilities.Output)
 local PlayerContainers = require(script.Parent.PlayerContainers)
+local ServerConnection = require(script.Parent.ServerConnection)
 local ServerIdentifiers = require(script.Parent.ServerIdentifiers)
 
 type TOptionalCallback<T> = (() -> T) | (() -> nil) | (() -> ())
@@ -32,8 +33,13 @@ local function toStringData(data: any)
 	end
 end
 
-local ServerBridge = {}
-ServerBridge.__index = ServerBridge
+local serverBridgePrototype = {}
+
+local CLASS_METATABLE = { __index = serverBridgePrototype }
+
+function CLASS_METATABLE:__tostring()
+	return "ServerBridge"
+end
 
 --[=[
 	@function OutboundMiddleware
@@ -44,7 +50,8 @@ ServerBridge.__index = ServerBridge
 	@param middlewareTable { (player: Player, object: any) -> any }
 	@return void
 ]=]
-function ServerBridge:InboundMiddleware(middlewareTable: { (player: Player, content: Types.Content) -> any })
+function serverBridgePrototype:InboundMiddleware(middlewareTable: { (player: Player, content: Types.Content) -> any })
+	Output.fatalAssert(tostring(self) == "ServerBridge", "InboundMiddleware called with . instead of :")
 	self._inboundMiddleware = middlewareTable
 end
 
@@ -56,9 +63,10 @@ end
 	@param middlewareTable { (target: ServerProcess.TPlayerType, object: any) -> any }
 	@return void
 ]=]
-function ServerBridge:OutboundMiddleware(
+function serverBridgePrototype:OutboundMiddleware(
 	middlewareTable: { (target: Types.PlayerContainer, content: Types.Content) -> any }
 )
+	Output.fatalAssert(tostring(self) == "ServerBridge", "OutboundMiddleware called with . instead of :")
 	self._outboundMiddleware = middlewareTable
 end
 
@@ -71,8 +79,15 @@ end
 	@param middlewareTable (player: Player, object: T) -> nil
 	@return void
 ]=]
-function ServerBridge:Connect(callback: (player: Player, content: Types.Content) -> nil)
-	local connection = ServerProcess.connect(self._identifier, function(player, content)
+function serverBridgePrototype:Connect(callback: (player: Player, content: Types.Content) -> nil): RBXScriptConnection
+	Output.fatalAssert(tostring(self) == "ServerBridge", "Connect called with . instead of :")
+
+	return ServerConnection(self._identifier, function(player, content)
+		if typeof(content) == "table" then
+			if (content :: {})[1] == ServerIdentifiers.ref("REQUEST") then
+				return
+			end
+		end
 		if self.RateLimitActive then
 			if self._rateMap[player] ~= nil then
 				local currentCount: number = self._rateMap[player]
@@ -140,12 +155,6 @@ function ServerBridge:Connect(callback: (player: Player, content: Types.Content)
 			callback(player, content)
 		end
 	end)
-
-	return {
-		Disconnect = function()
-			connection()
-		end,
-	}
 end
 
 --[=[
@@ -157,7 +166,8 @@ end
 	@param overflowFunction (player: Player) -> nil
 	@return void
 ]=]
-function ServerBridge:RateLimit(invokesPerSecond: number, overflowFunction: (player: Player) -> nil)
+function serverBridgePrototype:RateLimit(invokesPerSecond: number, overflowFunction: (player: Player) -> nil)
+	Output.fatalAssert(tostring(self) == "ServerBridge", "RateLimit called with . instead of :")
 	self.RateLimitActive = true
 	self._overflowFunction = overflowFunction
 	self._maxRate = invokesPerSecond
@@ -169,7 +179,8 @@ end
 
 	@return void
 ]=]
-function ServerBridge:DisableRateLimit()
+function serverBridgePrototype:DisableRateLimit()
+	Output.fatalAssert(tostring(self) == "ServerBridge", "DisableRateLimit called with . instead of :")
 	self.RateLimitActive = false
 end
 
@@ -181,7 +192,8 @@ end
 
 	@return ...
 ]=]
-function ServerBridge:Wait()
+function serverBridgePrototype:Wait()
+	Output.fatalAssert(tostring(self) == "ServerBridge", "Wait called with . instead of :")
 	local thread = coroutine.running()
 	self:Connect(function(player, content)
 		coroutine.resume(thread, player, content)
@@ -198,7 +210,8 @@ end
 	@param callback (player: Player, object: unknown) -> ()
 	@return ...
 ]=]
-function ServerBridge:Once(callback: (player: Player, content: Types.Content) -> ())
+function serverBridgePrototype:Once(callback: (player: Player, content: Types.Content) -> ())
+	Output.fatalAssert(tostring(self) == "ServerBridge", "Once called with . instead of :")
 	local connection
 	connection = self:Connect(function(player, content)
 		connection:Disconnect()
@@ -217,7 +230,8 @@ end
 
 	@return void
 ]=]
-function ServerBridge:Fire(target: Player | Types.PlayerContainer, content: any)
+function serverBridgePrototype:Fire(target: Player | Types.PlayerContainer, content: any)
+	Output.fatalAssert(tostring(self) == "ServerBridge", "Fire called with . instead of :")
 	local playerContainer: Types.PlayerContainer
 
 	-- if it's a single player, then create a player container w/ type "single"
@@ -304,6 +318,7 @@ return function(name: string)
 		_name = name,
 
 		Logging = false,
+		OnServerInvoke = function() end :: (player: Player, content: Types.Content?) -> ...any,
 
 		-- Rate limiting
 		RateLimitActive = false,
@@ -312,9 +327,22 @@ return function(name: string)
 		_overflowFunction = function()
 			return false
 		end,
-	}, ServerBridge)
+	}, CLASS_METATABLE)
 
 	ServerProcess.registerBridge(self._identifier)
+
+	ServerProcess.connect(self._identifier, function(player, content)
+		if typeof(content) ~= "table" then
+			return
+		end
+		if self.OnServerInvoke ~= nil then
+			if (content :: {})[1] == ServerIdentifiers.ref("REQUEST") then
+				local reply = self.OnServerInvoke(player, (content :: {})[2])
+				print(reply)
+				self:Fire(player, { ServerIdentifiers.ref("REQUEST"), reply })
+			end
+		end
+	end)
 
 	return self
 end

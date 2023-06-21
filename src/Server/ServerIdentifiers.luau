@@ -19,6 +19,7 @@ function ServerIdentifiers.start()
 	identifierStorage.Parent = ReplicatedStorage
 
 	ServerIdentifiers.ref("NIL_VALUE")
+	ServerIdentifiers.ref("REQUEST")
 end
 
 function ServerIdentifiers.ref(identifierName: string): Types.Identifier

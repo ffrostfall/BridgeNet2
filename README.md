@@ -4,7 +4,7 @@
 
 # BridgeNet2 v0.4.1
 
-A multi-paradigm, blazingly fast & highly equipped networking library for Roblox.
+Blazing fast & opinionated networking library designed to reduce bandwidth.
 
 [Documentation](https://ffrostflame.github.io/BridgeNet2/)
 

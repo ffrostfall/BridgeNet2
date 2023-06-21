@@ -1,21 +1,15 @@
-# About
+---
+sidebar_position: 1
+---
 
-BridgeNet2 is an advanced networking library for Roblox that offers a range of features for **optimizing, securing, and debugging network communication**. Key benefits of using BridgeNet2 include its **speed** and how it's faster than built-in Roblox networking functions and uses less bandwidth; A load of utility features such as **middleware, rate limiting, hexadecimal functions, and optimization functions**; and it is **fully typed**. BridgeNet2 also includes security features such as the ability to **control network security** and the contents of messages, and it can **disrupt the output of RemoteSpy logs**, making it harder for exploiters to read them.
+# Introduction
 
-# Why should you use BridgeNet2?
+BridgeNet2 is a networking library for Roblox that focuses on performance. It is meant to have a simplistic API that mirrors RemoteEvents, with the change of `Bridge:Fire` instead of `RemoteEvent:FireClient`, and `Bridge:Connect` instead of `RemoteEvent.OnServerEvent:Connect`. This is because BridgeNet2's optimization process is relatively complex, and bridges need to have a simplistic API for the internal process.
 
-- Performance: faster than roblox, less bandwidth used than Roblox.
-- Utility features: Middleware, rate limiting, hexadecimal functions, optimization functions, and more.
-- Botches RemoteSpy logs: Since BridgeNet2 sends a special format, it botches RemoteSpy logs and makes the output less readable for exploiters.
-- Security: BridgeNet2 lets you have control over network security, and what the contents of your messages are.
-- Debugging: Multiple useful features for debugging your netcode.
-- Natively written for Luau: There's no leftover features, or half-baked features meant for typescript.
-- **No other networking library offers all of these things.**
+## No varargs
 
-# Why should you use BridgeNet2 over BridgeNet?
+You cannot fire a bridge with multiple things. This means you cannot do `Bridge:Fire(1, 2, 3)`. Instead, you need to do `Bridge:Fire({1, 2, 3})`. This design choice is because it removes a layer- doing this means BridgeNet2 never needs to touch what you send through, it can just directly pass that data through the RemoteEvent. This is better for performance, stability, and it means typechecking is easier. It's a common pattern in Roblox to group up data into an array, or a dictionary anyways; this design choice just turns that into the standard.
 
-BridgeNet2 is far more advanced and resourceful than BridgeNet and other competing libraries.
-- BridgeNet2 is more **efficient**, with a smaller size in the 200-remotes-a-frame stress test and faster API call times. This makes the library 75% better than Roblox in terms of performance.
-- BridgeNet2's API is **just better**, with better naming, functionality, typings, and runtime typechecking.
-- BridgeNet2 includes better utility functions such as ToReadableHex, NumberToBestForm, and more.
-- BridgeNet2 is **simpler and easier** to maintain, while still offering improved security features like rate-limiting, better runtime typechecking, and better format checking.
+## Why is BridgeNet2 opinionated?
+
+This library is opinionated for performance- it encourages, and orients itself around the most performant way of doing things. This is shown with the removal of varargs, and just the general design of the library. BridgeNet2 never touches your data, but it encourages doing things in the best way possible.

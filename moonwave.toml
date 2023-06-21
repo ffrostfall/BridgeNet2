@@ -5,7 +5,7 @@ changelog = true
 
 [docusaurus]
 projectName = "BridgeNet2"
-tagline = "Easy to use, optimized, and full of useful functionality."
+tagline = "Blazing fast & opinionated networking library designed to reduce bandwidth"
 favicon = "favicon.png"
 
 [navbar.logo]
@@ -18,3 +18,11 @@ style = "dark"
 [home]
 enabled = true
 includeReadme = false
+
+[[home.features]]
+title = "Cuts the header from RemoteEvents"
+description = "BridgeNet2 cuts down successive remote event call size from 9 bytes to 2 bytes"
+
+[[home.features]]
+title = "Feature 1"
+description = "This is a feature"
