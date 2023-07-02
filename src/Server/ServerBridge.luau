@@ -41,28 +41,11 @@ function CLASS_METATABLE:__tostring()
 	return "ServerBridge"
 end
 
---[=[
-	@function OutboundMiddleware
-	@within ServerBridge
-
-	Sets the middleware to be used in-between your :Fire() and actually sending it out over the RemoteEvent.
-
-	@param middlewareTable { (player: Player, object: any) -> any }
-	@return void
-]=]
 function serverBridgePrototype:InboundMiddleware(middlewareTable: { (player: Player, content: Types.Content) -> any })
 	Output.fatalAssert(tostring(self) == "ServerBridge", "InboundMiddleware called with . instead of :")
 	self._inboundMiddleware = middlewareTable
 end
 
---[=[
-	@function OutboundMiddleware
-	@within ServerBridge
-
-
-	@param middlewareTable { (target: ServerProcess.TPlayerType, object: any) -> any }
-	@return void
-]=]
 function serverBridgePrototype:OutboundMiddleware(
 	middlewareTable: { (target: Types.PlayerContainer, content: Types.Content) -> any }
 )
@@ -70,17 +53,9 @@ function serverBridgePrototype:OutboundMiddleware(
 	self._outboundMiddleware = middlewareTable
 end
 
---[=[
-	@function Connect
-	@within ServerBridge
-
-	
-
-	@param middlewareTable (player: Player, object: T) -> nil
-	@return void
-]=]
 function serverBridgePrototype:Connect(callback: (player: Player, content: Types.Content) -> nil): RBXScriptConnection
 	Output.fatalAssert(tostring(self) == "ServerBridge", "Connect called with . instead of :")
+	Output.typecheck("function", "Connect", "callback", callback)
 
 	return ServerConnection(self._identifier, function(player, content)
 		if typeof(content) == "table" then
@@ -157,15 +132,6 @@ function serverBridgePrototype:Connect(callback: (player: Player, content: Types
 	end)
 end
 
---[=[
-	@function RateLimit
-	@within ServerBridge
-
-
-	@param invokesPerSecond number
-	@param overflowFunction (player: Player) -> nil
-	@return void
-]=]
 function serverBridgePrototype:RateLimit(invokesPerSecond: number, overflowFunction: (player: Player) -> nil)
 	Output.fatalAssert(tostring(self) == "ServerBridge", "RateLimit called with . instead of :")
 	self.RateLimitActive = true
@@ -173,25 +139,11 @@ function serverBridgePrototype:RateLimit(invokesPerSecond: number, overflowFunct
 	self._maxRate = invokesPerSecond
 end
 
---[=[
-	@function DisableRateLimit
-	@within ServerBridge
-
-	@return void
-]=]
 function serverBridgePrototype:DisableRateLimit()
 	Output.fatalAssert(tostring(self) == "ServerBridge", "DisableRateLimit called with . instead of :")
 	self.RateLimitActive = false
 end
 
---[=[
-	@function Wait
-	@within ServerBridge
-
-	Equivalent of RemoteEvent.OnServerEvent:Wait()
-
-	@return ...
-]=]
 function serverBridgePrototype:Wait()
 	Output.fatalAssert(tostring(self) == "ServerBridge", "Wait called with . instead of :")
 	local thread = coroutine.running()
@@ -201,17 +153,10 @@ function serverBridgePrototype:Wait()
 	return coroutine.yield()
 end
 
---[=[
-	@function Once
-	@within ServerBridge
-
-	Equivalent of RemoteEvent.OnServerEvent:Once()
-
-	@param callback (player: Player, object: unknown) -> ()
-	@return ...
-]=]
 function serverBridgePrototype:Once(callback: (player: Player, content: Types.Content) -> ())
 	Output.fatalAssert(tostring(self) == "ServerBridge", "Once called with . instead of :")
+	Output.typecheck("function", "Once", "callback", callback)
+
 	local connection
 	connection = self:Connect(function(player, content)
 		connection:Disconnect()
@@ -220,16 +165,6 @@ function serverBridgePrototype:Once(callback: (player: Player, content: Types.Co
 	return connection
 end
 
---[=[
-	@function Fire
-	@within ServerBridge
-
-	Equivalent of RemoteEvent:FireClient(), the ServerBridge:Fire() function takes a player type, or a singular player, and fires the
-	data to the client. Important to note that it takes a singular object as a parameter instead of using tuples-
-	this is intentional.
-
-	@return void
-]=]
 function serverBridgePrototype:Fire(target: Player | Types.PlayerContainer, content: any)
 	Output.fatalAssert(tostring(self) == "ServerBridge", "Fire called with . instead of :")
 	local playerContainer: Types.PlayerContainer
@@ -303,9 +238,6 @@ function serverBridgePrototype:Fire(target: Player | Types.PlayerContainer, cont
 	end
 end
 
---[=[
-	@class ServerBridge
-]=]
 return function(name: string)
 	local self = setmetatable({
 		-- Since this is the server, ReferenceIdentifier will not yield

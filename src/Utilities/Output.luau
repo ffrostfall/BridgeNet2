@@ -1,7 +1,7 @@
 --!strict
 local RunService = game:GetService("RunService")
 
-local PATTERN = if RunService:IsServer() then "[BridgeNet2] %*" else "[BridgeNet2] %*"
+local PATTERN = if RunService:IsServer() then "[BridgeNet2:S]: " else "[BridgeNet2:C]: "
 
 local Output = {}
 
@@ -9,12 +9,12 @@ type allTypes = "string" | "number" | "function" | "table"
 
 function Output.silent(info: string)
 	if RunService:IsStudio() then
-		print(string.format(PATTERN, info))
+		print(`{PATTERN}{info}`)
 	end
 end
 
 function Output.log(info: string)
-	print(string.format(PATTERN, info))
+	print(`{PATTERN}{info}`)
 end
 
 function Output.logAssert(condition: boolean, info: string)
@@ -24,7 +24,7 @@ function Output.logAssert(condition: boolean, info: string)
 end
 
 function Output.warn(info: string)
-	warn(string.format(PATTERN, info))
+	warn(`{PATTERN}{info}`)
 end
 
 function Output.warnAssert(condition: boolean, info: string)
@@ -33,22 +33,36 @@ function Output.warnAssert(condition: boolean, info: string)
 	end
 end
 
+--[[
+	PLEASE READ:
+
+	If you were taken here by the stack trace, go a few traces down! BridgeNet2 sadly clutters the stack trace
+	because it does thread reusage and because it has these logging utility functions.
+]]
+
 function Output.typecheck(expectedType: allTypes, funcName: string, paramName: string, param: unknown)
 	local resultType: allTypes = typeof(param) :: allTypes
-	Output.fatalAssert(
-		resultType == expectedType,
-		`{funcName} parameter {paramName} takes {expectedType}, got {resultType}`
-	)
+
+	if not (resultType == expectedType) then
+		error(`{PATTERN}{funcName} parameter {paramName} takes {expectedType}, got {resultType}`, 0)
+	end
 end
 
 function Output.fatal(info: string)
-	error(`\n[BridgeNet2:{if RunService:IsServer() then "S" else "C"}]: {info}`)
+	error(`{PATTERN}{info}`, 0)
 end
 
 function Output.fatalAssert(condition: boolean, info: string)
 	if not condition then
-		Output.fatal(info)
+		error(`{PATTERN}{info}`, 0)
 	end
 end
+
+--[[
+	PLEASE READ:
+	
+	If you were taken here by the stack trace, go a few traces down! BridgeNet2 sadly clutters the stack trace
+	because it does thread reusage and because it has these logging utility functions.
+]]
 
 return Output

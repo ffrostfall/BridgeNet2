@@ -7,9 +7,7 @@ local Output = require(script.Parent.Parent.Utilities.Output)
 local RecycledSpawn = require(script.Parent.Parent.Utilities.RecycledSpawn)
 
 local outboundQueue: { string | any } = {}
--- Cannot use # operator because of potentially nil values
-local outboundQueueLength: number = 0
-
+local outboundQueueLength: number = 0 -- Cannot use # operator because of potentially nil values
 local inboundQueue: { { [string]: { { [any]: any } } } } = {}
 local callbackMap: { [string]: { (object: any) -> () } } = {}
 

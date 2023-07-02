@@ -2,6 +2,16 @@
 
 This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## version 0.5.1
+
+### **Improvements**
+
+- Significantly improved error messages
+
+### **Fixes**
+
+- Fixed an edge case where BridgeNet2 would error if loaded too late
+
 ## [version 0.5.0](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.0): 6/21/2023
 
 ### **Added**

@@ -2,7 +2,11 @@
 local Types = require(script.Parent.Types)
 
 type ServerBridge = {
-	Fire: (self: ServerBridge, target: Player | Types.PlayerContainer, content: Types.Content) -> (),
+	Fire: (
+		self: ServerBridge,
+		target: Player | (Types.AllPlayerContainer | Types.SetPlayerContainer),
+		content: Types.Content
+	) -> (),
 	Connect: (self: ServerBridge, callback: (player: Player, content: Types.Content?) -> ()) -> Connection,
 	Once: (self: ServerBridge, callback: (player: Player, content: Types.Content?) -> ()) -> (),
 	Wait: (self: ServerBridge, callback: (player: Player, content: Types.Content?) -> ()) -> (Player, Types.Content?),
@@ -15,7 +19,7 @@ type ClientBridge = {
 	Fire: (self: ClientBridge, content: any?) -> (),
 	Connect: (self: ClientBridge, callback: (content: Types.Content?) -> ()) -> Connection,
 	Once: (self: ClientBridge, callback: (content: Types.Content?) -> ()) -> (),
-	Wait: (self: ClientBridge, callback: (content: Types.Content?) -> ()) -> Types.Content,
+	Wait: (self: ClientBridge, callback: (content: Types.Content?) -> ()) -> Types.Content?,
 
 	InvokeServerAsync: (self: ClientBridge, content: any?) -> ...Types.Content?,
 

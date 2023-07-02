@@ -32,17 +32,15 @@ bridge2:Connect(function(_, data)
 	print(data)
 end)
 
-bridge:Connect(function(_, data)
-	print(data)
-end)
+bridge:Connect("")
 
 task.wait(1)
 
---[[while true do
+while true do
 	local plr = Players:GetPlayers()[1]
 	bridge:Fire(plr, 1)
 	bridge2:Fire(plr, 2)
 	bridge:Fire(plr, 3)
 	bridge2:Fire(plr, 4)
 	task.wait(1)
-end]]
+end

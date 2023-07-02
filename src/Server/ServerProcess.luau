@@ -18,6 +18,21 @@ local inboundQueue: Types.Map<Player, Types.Array<Types.Array<Types.Content>>> =
 
 local callbackMap: Types.Map<Types.Identifier, Types.Array<Types.ServerConnectionCallback>> = {}
 
+local function playerAdded(player: Player)
+	-- playerList is for data structure optimization
+	playerList[player] = true
+
+	-- Set up the timeout system- BridgeNet2 should start incrementing this number from now on.
+	-- The existance of the number also means that the player is loading.
+	loadingPlayers[player] = 0
+
+	-- Set up the loading queue. This starts putting every single packet in this queue, instead of sending it.
+	loadingPlayersQueue[player] = {}
+
+	-- Start listening to the player for events.
+	inboundQueue[player] = {}
+end
+
 local ServerProcess = {}
 
 function ServerProcess.start()
@@ -35,20 +50,11 @@ function ServerProcess.start()
 		metaRemoteEvent.Parent = ReplicatedStorage
 		dataRemoteEvent.Parent = ReplicatedStorage
 
-		Players.PlayerAdded:Connect(function(plr)
-			-- playerList is for data structure optimization
-			playerList[plr] = true
+		for _, player in Players:GetPlayers() do
+			playerAdded(player)
+		end
 
-			-- Set up the timeout system- BridgeNet2 should start incrementing this number from now on.
-			-- The existance of the number also means that the player is loading.
-			loadingPlayers[plr] = 0
-
-			-- Set up the loading queue. This starts putting every single packet in this queue, instead of sending it.
-			loadingPlayersQueue[plr] = {}
-
-			-- Start listening to the player for events.
-			inboundQueue[plr] = {}
-		end)
+		Players.PlayerAdded:Connect(playerAdded)
 
 		Players.PlayerRemoving:Connect(function(plr)
 			-- Remove player from every internal data structure
