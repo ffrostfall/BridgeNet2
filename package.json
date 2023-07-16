@@ -25,7 +25,7 @@
     "fs-extra": "^11.1.0",
     "minimist": "^1.2.8",
     "moment": "^2.29.4",
-    "moonwave": "^1.0.1",
+    "moonwave": "^1.1.1",
     "octokit": "^2.0.19",
     "path": "^0.12.7",
     "rimraf": "^5.0.1"

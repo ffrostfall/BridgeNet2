@@ -56,6 +56,7 @@ end
 
 function clientBridgePrototype:Fire(content: any)
 	Output.fatalAssert(tostring(self) == "ClientBridge", "Fire called with . instead of :")
+
 	if self._outboundMiddleware ~= nil then
 		local result = content
 
@@ -102,6 +103,7 @@ end
 
 function clientBridgePrototype:Connect(callback: (content: Types.Content) -> ()): RBXScriptConnection
 	Output.fatalAssert(tostring(self) == "ClientBridge", "connect called with . instead of :")
+	Output.typecheck("function", "Connect", "callback", callback)
 
 	return ClientConnection(self._identifier, function(content)
 		if typeof(content) == "table" then
@@ -201,9 +203,6 @@ function clientBridgePrototype:Destroy()
 	setmetatable(self, nil)
 end
 
---[=[
-	@class ClientBridge
-]=]
 return function(name: string)
 	local self = setmetatable({
 		Logging = false,

@@ -5,12 +5,12 @@ local RunService = game:GetService("RunService")
 local Types = require(script.Parent.Parent.Types)
 local Output = require(script.Parent.Parent.Utilities.Output)
 
-local ClientIdentifiers = {}
-
 local identifierStorage
 local fullIdentifierMap = {}
 local compressedIdentifierMap = {}
 local yieldingThreads = {}
+
+local ClientIdentifiers = {}
 
 function ClientIdentifiers.start()
 	-- Wait for IdentifierStorage to exist, since we're on the client and load order isn't guaranteed.

@@ -24,5 +24,9 @@ title = "Cuts the header from RemoteEvents"
 description = "BridgeNet2 cuts down successive remote event call size from 9 bytes to 2 bytes"
 
 [[home.features]]
-title = "Feature 1"
-description = "This is a feature"
+title = "High quality logging"
+description = "BridgeNet2 makes logging network traffic incredibly easy in an extremely readable manner"
+
+[[home.features]]
+title = "Oriented around performance"
+description = "If your game is having performance issues related to networking, switching to BridgeNet2 will help."
