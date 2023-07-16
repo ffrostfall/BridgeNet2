@@ -2,7 +2,6 @@
 
 This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
-<<<<<<< HEAD
 ## version 0.5.2
 
 ### Improvements
@@ -13,17 +12,6 @@ This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
 - Fixed a bug where referencing a bridge multiple times clearing connections each time
 - Fixed a bug where the player loading before BridgeNet2 starts would never initialize the player
-=======
-## version 0.5.1
-
-### **Improvements**
-
-- Significantly improved error messages
-
-### **Fixes**
-
-- Fixed an edge case where BridgeNet2 would error if loaded too late
->>>>>>> 1d7d36f8f9215bcbfdc768c10733084b4265beae
 
 ## [version 0.5.0](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.0): 6/21/2023
 
