@@ -1,3 +1,4 @@
+--!nocheck
 type options = {
 	context: any,
 }
@@ -32,7 +33,7 @@ local function isSuccessful(folder)
 	local numOfFails = 0
 	local numOfSuccess = 0
 
-	for name, value in folder do
+	for _, value in folder do
 		if value.ok ~= nil then
 			if value.ok then
 				numOfSuccess += 1
@@ -59,7 +60,7 @@ local function readiyDirectory(dir, spaceStr)
 			finalString ..= spaceStr .. string.format("[%s] ", marker)
 			finalString ..= name
 		else
-			local wins, fails = isSuccessful(value)
+			local _, fails = isSuccessful(value)
 			local marker = fails > 0 and "-" or "+"
 			finalString ..= "\n"
 			finalString ..= spaceStr .. string.format("[%s] ", marker)
@@ -74,7 +75,7 @@ end
 local function readifyDirectoryErrs(dir)
 	local finalString = ""
 
-	for name, value in dir do
+	for _, value in dir do
 		if value.ok ~= nil then
 			if value.ok == false then
 				finalString ..= "\n"

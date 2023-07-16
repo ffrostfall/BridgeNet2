@@ -18,11 +18,7 @@ local inboundQueue: Types.Map<Player, Types.Array<Types.Array<Types.Content>>> =
 
 local callbackMap: Types.Map<Types.Identifier, Types.Array<Types.ServerConnectionCallback>> = {}
 
-<<<<<<< HEAD
 local function playerAdded(player)
-=======
-local function playerAdded(player: Player)
->>>>>>> 1d7d36f8f9215bcbfdc768c10733084b4265beae
 	-- playerList is for data structure optimization
 	playerList[player] = true
 
@@ -54,13 +50,6 @@ function ServerProcess.start()
 		metaRemoteEvent.Parent = ReplicatedStorage
 		dataRemoteEvent.Parent = ReplicatedStorage
 
-<<<<<<< HEAD
-=======
-		for _, player in Players:GetPlayers() do
-			playerAdded(player)
-		end
-
->>>>>>> 1d7d36f8f9215bcbfdc768c10733084b4265beae
 		Players.PlayerAdded:Connect(playerAdded)
 
 		Players.PlayerRemoving:Connect(function(plr)

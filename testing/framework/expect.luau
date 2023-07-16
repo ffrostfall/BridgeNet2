@@ -55,7 +55,7 @@ local cases = {
 			local never = rawget(self, "_never")
 			local value = rawget(self, "_value")
 
-			local result, err = pcall(value)
+			local result = pcall(value)
 			result = not result
 
 			if never then
