@@ -1,3 +1,4 @@
+--!strict
 local Output = require(script.Parent.Parent.Utilities.Output)
 
 local INVALID_PACKET_MESSAGE =

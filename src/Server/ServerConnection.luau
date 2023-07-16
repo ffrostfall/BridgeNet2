@@ -1,3 +1,4 @@
+--!strict
 local ServerProcess = require(script.Parent.ServerProcess)
 
 type connectionType = { Connected: boolean }

@@ -2,6 +2,17 @@
 
 This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## version 0.5.2
+
+### Improvements
+
+- PlayerContainers now error if an incorrect amount of arguments is passed
+
+### **Fixes**
+
+- Fixed a bug where referencing a bridge multiple times clearing connections each time
+- Fixed a bug where the player loading before BridgeNet2 starts would never initialize the player
+
 ## [version 0.5.0](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.0): 6/21/2023
 
 ### **Added**
