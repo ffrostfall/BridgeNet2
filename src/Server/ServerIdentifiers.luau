@@ -14,9 +14,14 @@ local compressedIdentifierMap = {}
 local identifierStorage: Folder
 
 function ServerIdentifiers.start()
-	identifierStorage = Instance.new("Folder")
-	identifierStorage.Name = "identifierStorage"
-	identifierStorage.Parent = ReplicatedStorage
+	local potentialIdentifierStorage = ReplicatedStorage:FindFirstChild("identifierStorage")
+	if potentialIdentifierStorage then
+		identifierStorage = potentialIdentifierStorage
+	else
+		identifierStorage = Instance.new("Folder")
+		identifierStorage.Name = "identifierStorage"
+		identifierStorage.Parent = ReplicatedStorage
+	end
 
 	ServerIdentifiers.ref("NIL_VALUE")
 	ServerIdentifiers.ref("REQUEST")

@@ -5,33 +5,12 @@ local ServerProcess = require(script.Parent.ServerProcess)
 local TableKit = require(script.Parent.Parent.Parent.TableKit)
 local Types = require(script.Parent.Parent.Types)
 local Output = require(script.Parent.Parent.Utilities.Output)
+local tostringData = require(script.Parent.Parent.Utilities.tostringData)
 local PlayerContainers = require(script.Parent.PlayerContainers)
 local ServerConnection = require(script.Parent.ServerConnection)
 local ServerIdentifiers = require(script.Parent.ServerIdentifiers)
 
 type TOptionalCallback<T> = (() -> T) | (() -> nil) | (() -> ())
-
--- luau requires typecasts here
-local function toStringData(data: any)
-	if typeof(data) == "table" then
-		if TableKit.IsArray(data) then
-			return TableKit.ToArrayString(data)
-		else
-			return TableKit.ToString(data)
-		end
-	else
-		local prefix = ""
-		local suffix = ""
-		if typeof(data) == "CFrame" then
-			prefix = "CFrame("
-			suffix = ")"
-		elseif typeof(data) == "Vector3" then
-			prefix = "Vector3("
-			suffix = ")"
-		end
-		return `{prefix}{tostring(data)}{suffix}`
-	end
-end
 
 local serverBridgePrototype = {}
 
@@ -107,7 +86,7 @@ function serverBridgePrototype:Connect(callback: (player: Player, content: Types
 						Constants.SERVER_CONNECT_LOG,
 						self._name,
 						player.Name,
-						toStringData(content),
+						tostringData(content),
 						RemotePacketSizeCounter.GetDataByteSize(content)
 					)
 					Output.log(logOutput)
@@ -121,7 +100,7 @@ function serverBridgePrototype:Connect(callback: (player: Player, content: Types
 					Constants.SERVER_CONNECT_LOG,
 					self._name,
 					player.Name,
-					toStringData(content),
+					tostringData(content),
 					RemotePacketSizeCounter.GetDataByteSize(content)
 				)
 				Output.log(logOutput)
@@ -210,7 +189,7 @@ function serverBridgePrototype:Fire(target: Player | Types.PlayerContainer, cont
 					then "{all}"
 					elseif playerContainer.kind == "single" then playerContainer.value.Name
 					else TableKit.ToArrayString(playerContainer.value),
-				toStringData(result),
+				tostringData(result),
 				RemotePacketSizeCounter.GetDataByteSize(result)
 			)
 			Output.log(logOutput)
@@ -227,7 +206,7 @@ function serverBridgePrototype:Fire(target: Player | Types.PlayerContainer, cont
 						then "{all}"
 						elseif playerContainer.kind == "single" then playerContainer.value.Name
 						else TableKit.ToArrayString(playerContainer.value),
-					toStringData(content),
+					tostringData(content),
 					RemotePacketSizeCounter.GetDataByteSize(content)
 				)
 				Output.log(logOutput)

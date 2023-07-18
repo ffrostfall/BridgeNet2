@@ -7,14 +7,7 @@ local Output = require(script.Parent.Parent.Utilities.Output)
 local TableKit = require(script.Parent.Parent.Parent.TableKit)
 local RemotePacketSizeCounter = require(script.Parent.Parent.Parent.RemotePacketSizeCounter)
 local Types = require(script.Parent.Parent.Types)
-
-local function toStringData(data: unknown)
-	if typeof(data) == "table" then
-		return TableKit.ToString(data :: {})
-	else
-		return tostring(data)
-	end
-end
+local tostringData = require(script.Parent.Parent.Utilities.tostringData)
 
 local clientBridgePrototype = {}
 
@@ -79,7 +72,7 @@ function clientBridgePrototype:Fire(content: any)
 			local logOutput = string.format(
 				Constants.CLIENT_FIRE_LOG,
 				self._name,
-				toStringData(result),
+				tostringData(result),
 				RemotePacketSizeCounter.GetDataByteSize(result)
 			)
 			Output.log(logOutput)
@@ -91,7 +84,7 @@ function clientBridgePrototype:Fire(content: any)
 			local logOutput = string.format(
 				Constants.CLIENT_FIRE_LOG,
 				self._name,
-				toStringData(content),
+				tostringData(content),
 				RemotePacketSizeCounter.GetDataByteSize(content)
 			)
 			Output.log(logOutput)
@@ -134,7 +127,7 @@ function clientBridgePrototype:Connect(callback: (content: Types.Content) -> ())
 				local logOutput = string.format(
 					Constants.CLIENT_CONNECT_LOG,
 					self._name,
-					toStringData(result),
+					tostringData(result),
 					RemotePacketSizeCounter.GetDataByteSize(result)
 				)
 				Output.log(logOutput)
@@ -146,7 +139,7 @@ function clientBridgePrototype:Connect(callback: (content: Types.Content) -> ())
 				local logOutput = string.format(
 					Constants.CLIENT_CONNECT_LOG,
 					self._name,
-					toStringData(content),
+					tostringData(content),
 					RemotePacketSizeCounter.GetDataByteSize(content)
 				)
 				Output.log(logOutput)

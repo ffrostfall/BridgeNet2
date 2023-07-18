@@ -41,14 +41,27 @@ function ServerProcess.start()
 		Output.log("Loading")
 
 		-- Create 2 remote events- one for meta messages (loading, etc.), one for data.
-		local metaRemoteEvent = Instance.new("RemoteEvent")
-		local dataRemoteEvent = Instance.new("RemoteEvent")
 
-		metaRemoteEvent.Name = "metaRemoteEvent"
-		dataRemoteEvent.Name = "dataRemoteEvent"
+		local metaRemoteEvent
+		local dataRemoteEvent
 
-		metaRemoteEvent.Parent = ReplicatedStorage
-		dataRemoteEvent.Parent = ReplicatedStorage
+		local potentialMetaRemoteEvent = ReplicatedStorage:FindFirstChild("metaRemoteEvent")
+		if potentialMetaRemoteEvent then
+			metaRemoteEvent = potentialMetaRemoteEvent
+		else
+			metaRemoteEvent = Instance.new("RemoteEvent")
+			metaRemoteEvent.Name = "metaRemoteEvent"
+			metaRemoteEvent.Parent = ReplicatedStorage
+		end
+
+		local potentialDataRemoteEvent = ReplicatedStorage:FindFirstChild("dataRemoteEvent")
+		if potentialDataRemoteEvent then
+			dataRemoteEvent = potentialDataRemoteEvent
+		else
+			dataRemoteEvent = Instance.new("RemoteEvent")
+			dataRemoteEvent.Name = "dataRemoteEvent"
+			dataRemoteEvent.Parent = ReplicatedStorage
+		end
 
 		Players.PlayerAdded:Connect(playerAdded)
 
@@ -226,6 +239,7 @@ function ServerProcess.setInvalidPlayerFunction(func: (plr: Player) -> ())
 end
 
 function ServerProcess.registerBridge(identifier: string)
+	-- This is here because bridges can be registered multiple times
 	if not callbackMap[identifier] then
 		callbackMap[identifier] = {}
 	end

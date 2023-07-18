@@ -80,7 +80,10 @@ function ClientProcess.start()
 end
 
 function ClientProcess.registerBridge(identifier: Types.Identifier)
-	callbackMap[identifier] = {}
+	-- This is here because bridges can be registered multiple times
+	if not callbackMap[identifier] then
+		callbackMap[identifier] = {}
+	end
 end
 
 function ClientProcess.addToQueue(identifier: Types.Identifier, object: any)
