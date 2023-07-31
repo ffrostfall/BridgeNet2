@@ -2,6 +2,20 @@
 
 This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [version 0.5.3](incomplete): 7/31/2023
+
+## Added
+- A mock API for when BridgeNet2 is ran in edit mode. Limitations: InvokeServerAsync will infinitely yield, connections will never run.
+
+### Improvements
+- BridgeNet2 nows prints the current version upon being loaded
+- Improved output readability
+- **Potentially breaking:** Bridges now are cached- this means you will have the same bridge object across scripts. This should be more expected behavior, and should overall be an improvement.
+
+### Fixes
+- Potentially fixed some issues with loading and identifiers?
+- Fixed a bug where referencing a bridge multiple times clearing connections each time (Except on the client this time)
+
 ## [version 0.5.2](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.2): 7/15/2023
 
 ### Improvements

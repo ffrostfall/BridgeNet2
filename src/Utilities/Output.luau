@@ -1,7 +1,7 @@
 --!strict
 local RunService = game:GetService("RunService")
 
-local PATTERN = if RunService:IsServer() then "[BridgeNet2:S]: " else "[BridgeNet2:C]: "
+local PATTERN = "[BridgeNet2] "
 
 local Output = {}
 

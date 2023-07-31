@@ -5,6 +5,7 @@ local RunService = game:GetService("RunService")
 local Types = require(script.Parent.Parent.Types)
 local Output = require(script.Parent.Parent.Utilities.Output)
 local RecycledSpawn = require(script.Parent.Parent.Utilities.RecycledSpawn)
+local version = require(script.Parent.Parent.version)
 
 local outboundQueue: { string | any } = {}
 local outboundQueueLength: number = 0 -- Cannot use # operator because of potentially nil values
@@ -15,7 +16,7 @@ local ClientProcess = {}
 
 function ClientProcess.start()
 	debug.setmemorycategory("BridgeNet2")
-	Output.log("Loading BridgeNet2")
+	Output.log(`Loading client version {version}`)
 
 	-- :WaitForChild() to confirm instances exist, we're in another thread.
 	local DataRemoteEvent: RemoteEvent = ReplicatedStorage:WaitForChild("dataRemoteEvent")

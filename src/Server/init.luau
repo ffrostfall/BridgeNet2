@@ -1,19 +1,34 @@
 --!strict
 local Types = require(script.Parent.Types)
+local isEditMode = require(script.Parent.Utilities.isEditMode)
 local PlayerContainers = require(script.PlayerContainers)
 local ServerBridge = require(script.ServerBridge)
 local ServerIdentifiers = require(script.ServerIdentifiers)
 local ServerProcess = require(script.ServerProcess)
 
+local activeBridges = {}
+
 local Server = {}
 
 function Server.start()
-	ServerProcess.start()
+	if isEditMode then
+		return
+	end
+
 	ServerIdentifiers.start()
+	ServerProcess.start()
 end
 
 function Server.makeBridge(name: string)
-	return ServerBridge(name)
+	if activeBridges[name] then
+		return activeBridges[name]
+	else
+		local bridge = ServerBridge(name)
+
+		activeBridges[name] = bridge
+
+		return bridge
+	end
 end
 
 function Server.ser(identifierName: string): Types.Identifier?

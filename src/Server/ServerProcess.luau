@@ -8,6 +8,8 @@ local Output = require(script.Parent.Parent.Utilities.Output)
 local TableKit = require(script.Parent.Parent.Parent.TableKit)
 local Types = require(script.Parent.Parent.Types)
 local RecycledSpawn = require(script.Parent.Parent.Utilities.RecycledSpawn)
+local version = require(script.Parent.Parent.version)
+local ServerIdentifiers = require(script.Parent.ServerIdentifiers)
 
 local playerList: Types.Set<Player> = {}
 local loadingPlayers: Types.Map<Player, number?> = {}
@@ -38,7 +40,7 @@ local ServerProcess = {}
 function ServerProcess.start()
 	task.spawn(function()
 		debug.setmemorycategory("BridgeNet2")
-		Output.log("Loading")
+		Output.log(`Loading server version {version}`)
 
 		-- Create 2 remote events- one for meta messages (loading, etc.), one for data.
 
@@ -203,7 +205,9 @@ function ServerProcess.start()
 						end
 
 						for _, callback in callbacks do
+							debug.profilebegin(tostring(ServerIdentifiers.deser(identifier)))
 							RecycledSpawn(callback, plr, content)
+							debug.profileend()
 						end
 					end
 				end

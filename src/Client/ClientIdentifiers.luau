@@ -1,6 +1,5 @@
 --!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 
 local Types = require(script.Parent.Parent.Types)
 local Output = require(script.Parent.Parent.Utilities.Output)
@@ -18,28 +17,21 @@ function ClientIdentifiers.start()
 
 	-- Loop through every single existing identifer, stored as an attribute.
 	-- Simply parse them into the system.
-	for id, value in identifierStorage:GetAttributes() do
-		fullIdentifierMap[id] = value
-		compressedIdentifierMap[value] = id
+	for identifier, value in identifierStorage:GetAttributes() do
+		fullIdentifierMap[identifier] = value
+		compressedIdentifierMap[value] = identifier
+		ClientIdentifiers.loadIdentifier(identifier, value)
 	end
 
 	identifierStorage.AttributeChanged:Connect(function(id: string)
 		local packed: string = identifierStorage:GetAttribute(id)
 
 		if packed then
-			-- If there's any threads waiting for an identifer, resume them, then delete the reference entirely.
-			local waitingThreads = yieldingThreads[id]
-			if waitingThreads then
-				for thread in waitingThreads do
-					task.spawn(thread, packed)
-				end
-
-				yieldingThreads[id] = nil
-			end
-
 			-- Put the identifier into the system.
 			fullIdentifierMap[id] = packed
 			compressedIdentifierMap[packed] = id
+
+			ClientIdentifiers.loadIdentifier(id, packed)
 		else
 			-- The identifier was deleted.
 			-- TODO why is this here? you can't even delete identifiers atm
@@ -49,17 +41,63 @@ function ClientIdentifiers.start()
 		end
 	end)
 
-	ClientIdentifiers.ref("NIL_VALUE")
+	ClientIdentifiers.ref("NIL_VALUE", 3, false)
+	ClientIdentifiers.ref("REQUEST", 3, false)
 end
 
-function ClientIdentifiers.ref(identifierName: string, maxWaitTime: number?)
-	Output.typecheck("string", "ReferenceIdentifier", "identifierName", identifierName)
-
-	if RunService:IsStudio() then
-		fullIdentifierMap[identifierName] = identifierName
-		compressedIdentifierMap[identifierName] = identifierName
-		return identifierName
+function ClientIdentifiers.loadIdentifier(identifierName: string, value: string)
+	if not yieldingThreads[identifierName] then
+		-- There aren't any yielding threads, so we don't need to resume any.
+		return
 	end
+
+	local indexes = {}
+
+	for index, thread in yieldingThreads[identifierName] do
+		-- Resume yielding threads with the compressed identifier.
+		-- This will make the function return the compressed identifier
+		coroutine.resume(thread, value)
+
+		-- Insert it to say we aren't yielding this thread anymore
+		table.insert(indexes, index)
+	end
+
+	-- Since the timeout relies on knowing whether or not the thread is still yielding, we need to remove it.
+	for _, index in indexes do
+		table.remove(yieldingThreads[identifierName], index)
+	end
+end
+
+function ClientIdentifiers.waitForIdentifier(identifierName: string, timeout: number, bridgeCall: boolean)
+	timeout = timeout or 1
+
+	local identifier = fullIdentifierMap[identifierName]
+	if identifier then
+		return identifier
+	end
+
+	if not yieldingThreads[identifierName] then
+		yieldingThreads[identifierName] = {}
+	end
+
+	-- This needs to be a variable because the task.delay will run in a separate thread
+	local runningThread = coroutine.running()
+	table.insert(yieldingThreads[identifierName], runningThread)
+
+	task.delay(timeout, function()
+		-- Are we still yielding?
+		if table.find(yieldingThreads[identifierName], runningThread) then
+			Output.fatal(
+				`reached max wait time for {if bridgeCall then "bridge" else "identifier"} {identifierName}, broke yield. Did you forget to implement it on the server?`
+			)
+		end
+	end)
+
+	return coroutine.yield()
+end
+
+function ClientIdentifiers.ref(identifierName: string, maxWaitTime: number?, bridgeCall: boolean)
+	Output.typecheck("string", "ReferenceIdentifier", "identifierName", identifierName)
 
 	if maxWaitTime ~= nil then
 		Output.typecheck("number", "ReferenceIdentifier", "maxWaitTime", maxWaitTime)
@@ -71,35 +109,7 @@ function ClientIdentifiers.ref(identifierName: string, maxWaitTime: number?)
 		return identifier
 	end
 
-	local thread = coroutine.running()
-
-	local threads = yieldingThreads[identifierName]
-	if threads then
-		threads[thread] = true
-	else
-		threads = { [thread] = true }
-		yieldingThreads[identifierName] = threads
-	end
-
-	-- Simple timeout implementation
-	local timeOut = task.delay(maxWaitTimeArg, function()
-		threads[thread] = nil
-
-		task.spawn(thread, nil)
-	end)
-
-	local retrievedIdentifier = coroutine.yield()
-	-- cancel the timeout thread
-
-	if retrievedIdentifier == nil then
-		Output.fatal(
-			`reached max wait time for identifier {identifierName}, broke yield. Did you forget to implement it on the server?`
-		)
-	else
-		task.cancel(timeOut)
-	end
-
-	return retrievedIdentifier
+	return ClientIdentifiers.waitForIdentifier(identifierName, maxWaitTimeArg, bridgeCall)
 end
 
 function ClientIdentifiers.deser(compressedIdentifier: Types.Identifier): Types.Identifier?

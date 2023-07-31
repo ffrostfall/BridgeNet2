@@ -100,7 +100,7 @@ function clientBridgePrototype:Connect(callback: (content: Types.Content) -> ())
 
 	return ClientConnection(self._identifier, function(content)
 		if typeof(content) == "table" then
-			if (content :: {})[1] == ClientIdentifiers.ref("REQUEST") then
+			if (content :: {})[1] == ClientIdentifiers.ref("REQUEST", 3, false) then
 				return
 			end
 		end
@@ -162,14 +162,14 @@ end
 
 function clientBridgePrototype:InvokeServerAsync(content: any)
 	Output.fatalAssert(tostring(self) == "ClientBridge", "InvokeServerAsync called with . instead of :")
-	self:Fire({ ClientIdentifiers.ref("REQUEST"), content })
+	self:Fire({ ClientIdentifiers.ref("REQUEST", 3, false), content })
 	local thread = coroutine.running()
 	local connection
 	connection = ClientProcess.connect(self._identifier, function(reply)
 		if typeof(reply) ~= "table" then
 			return
 		end
-		if (reply :: {})[1] == ClientIdentifiers.ref("REQUEST") then
+		if (reply :: {})[1] == ClientIdentifiers.ref("REQUEST", 3, false) then
 			connection()
 			coroutine.resume(thread, (reply :: {})[2])
 		end
@@ -200,7 +200,7 @@ return function(name: string)
 	local self = setmetatable({
 		Logging = false,
 
-		_identifier = ClientIdentifiers.ref(name),
+		_identifier = ClientIdentifiers.ref(name, 3, true),
 		_name = name,
 
 		_inboundMiddleware = {},

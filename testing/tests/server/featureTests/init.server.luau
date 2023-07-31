@@ -8,8 +8,6 @@ local bridge2 = BridgeNet2.ServerBridge("tester2")
 
 local t = BridgeNet2.ReferenceBridge("test")
 
-bridge2.Logging = true
-
 bridge2.OnServerInvoke = function(plr, content)
 	print(plr)
 	print(content)
