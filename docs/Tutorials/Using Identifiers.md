@@ -32,7 +32,7 @@ local anotherThing = BridgeNet2.ReferenceIdentifier("anotherThing")
 
 sendSomeData:Fire({
 	[firstThingToSend] = 5,
-	[anotherThingToSend] = false,
+	[anotherThing] = false,
 })
 ```
 At the cost of 2 lines of code, we completely solved the problem! Our code is now both readable and efficient.
