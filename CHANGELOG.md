@@ -2,7 +2,7 @@
 
 This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
-## [version 0.5.3](incomplete): 7/31/2023
+## [version 0.5.3](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.3): 7/31/2023
 
 ## Added
 - A mock API for when BridgeNet2 is ran in edit mode. Limitations: InvokeServerAsync will infinitely yield, connections will never run.
