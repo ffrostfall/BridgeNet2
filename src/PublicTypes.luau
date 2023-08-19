@@ -7,7 +7,11 @@ type ServerBridge = {
 		target: Player | (Types.AllPlayerContainer | Types.SetPlayerContainer),
 		content: Types.Content
 	) -> (),
-	Connect: (self: ServerBridge, callback: (player: Player, content: Types.Content?) -> ()) -> Connection,
+	Connect: (
+		self: ServerBridge,
+		callback: (player: Player, content: Types.Content?) -> (),
+		name: string?
+	) -> Connection,
 	Once: (self: ServerBridge, callback: (player: Player, content: Types.Content?) -> ()) -> (),
 	Wait: (self: ServerBridge, callback: (player: Player, content: Types.Content?) -> ()) -> (Player, Types.Content?),
 
@@ -17,7 +21,7 @@ type ServerBridge = {
 }
 type ClientBridge = {
 	Fire: (self: ClientBridge, content: any?) -> (),
-	Connect: (self: ClientBridge, callback: (content: Types.Content?) -> ()) -> Connection,
+	Connect: (self: ClientBridge, callback: (content: Types.Content?) -> (), name: string?) -> Connection,
 	Once: (self: ClientBridge, callback: (content: Types.Content?) -> ()) -> (),
 	Wait: (self: ClientBridge, callback: (content: Types.Content?) -> ()) -> Types.Content?,
 
@@ -38,7 +42,7 @@ export type BridgeNet2 = {
 	ClientBridge: (name: string) -> ClientBridge,
 	ServerBridge: (name: string) -> ServerBridge,
 
-	ReferenceIdentifier: (name: string, maxWaitTime: number) -> Types.Identifier,
+	ReferenceIdentifier: (name: string, maxWaitTime: number?) -> Types.Identifier,
 
 	Serialize: (identifierName: string) -> Types.Identifier,
 	Deserialize: (compressedIdentifier: string) -> Types.Identifier,

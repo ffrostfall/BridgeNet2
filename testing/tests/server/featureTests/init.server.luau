@@ -26,6 +26,8 @@ t:Connect(function(_, _) end)
 	print("should print once")
 end)]]
 
+bridge.Logging = true
+
 bridge2:Connect(function(_, data)
 	print(data)
 end)

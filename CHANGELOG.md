@@ -2,9 +2,18 @@
 
 This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## [version 0.5.4](): 8/19/2023
+
+### Added
+- You can now name connections, which will show up in logging and in the microprofiler.
+- Calling script and line are now shown for connections and firing bridges
+
+### Improvements
+- Type improvements
+
 ## [version 0.5.3](incomplete): 7/31/2023
 
-## Added
+### Added
 - A mock API for when BridgeNet2 is ran in edit mode. Limitations: InvokeServerAsync will infinitely yield, connections will never run.
 
 ### Improvements

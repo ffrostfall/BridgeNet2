@@ -5,13 +5,15 @@ local BridgeNet2 = require(ReplicatedStorage.Packages.bridgenet2)
 local bridge = BridgeNet2.ReferenceBridge("tester")
 local bridge2 = BridgeNet2.ReferenceBridge("tester2")
 
+bridge.Logging = true
+
 bridge:Connect(function(data)
 	print(data)
-end)
+end, "test")
 
 bridge2:Connect(function(data)
 	print(data)
-end)
+end, "test")
 
 while true do
 	print(bridge2:InvokeServerAsync({ "Hello!" }))

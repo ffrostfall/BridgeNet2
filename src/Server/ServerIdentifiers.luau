@@ -35,7 +35,6 @@ function ServerIdentifiers.ref(identifierName: string): Types.Identifier
 		identifierCount <= Constants.IDENTIFIER_CAP,
 		`cannot create any more identifiers - over {Constants.IDENTIFIER_CAP_STRING} cap.`
 	)
-	Output.silent(`creating identifier: {identifierName}`)
 
 	-- optimization for under 255 identifiers
 	local packed = if identifierCount <= 255

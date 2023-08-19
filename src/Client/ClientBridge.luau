@@ -69,6 +69,7 @@ function clientBridgePrototype:Fire(content: any)
 		end
 
 		if self.Logging then
+			Output.log(`{debug.info(2, "s")}:{debug.info(2, "l")}`)
 			local logOutput = string.format(
 				Constants.CLIENT_FIRE_LOG,
 				self._name,
@@ -81,6 +82,7 @@ function clientBridgePrototype:Fire(content: any)
 		ClientProcess.addToQueue(self._identifier, result)
 	else
 		if self.Logging then
+			Output.log(`{debug.info(2, "s")}:{debug.info(2, "l")}`)
 			local logOutput = string.format(
 				Constants.CLIENT_FIRE_LOG,
 				self._name,
@@ -94,9 +96,12 @@ function clientBridgePrototype:Fire(content: any)
 	end
 end
 
-function clientBridgePrototype:Connect(callback: (content: Types.Content) -> ()): RBXScriptConnection
+function clientBridgePrototype:Connect(callback: (content: Types.Content) -> (), name: string?): RBXScriptConnection
 	Output.fatalAssert(tostring(self) == "ClientBridge", "connect called with . instead of :")
 	Output.typecheck("function", "Connect", "callback", callback)
+
+	local line = debug.info(2, "l")
+	local scriptName = debug.info(2, "s")
 
 	return ClientConnection(self._identifier, function(content)
 		if typeof(content) == "table" then
@@ -126,26 +131,46 @@ function clientBridgePrototype:Connect(callback: (content: Types.Content) -> ())
 			if self.Logging then
 				local logOutput = string.format(
 					Constants.CLIENT_CONNECT_LOG,
-					self._name,
+					name or self._name,
 					tostringData(result),
-					RemotePacketSizeCounter.GetDataByteSize(result)
+					RemotePacketSizeCounter.GetDataByteSize(result),
+					scriptName,
+					line
 				)
 				Output.log(logOutput)
 			end
 
+			if name then
+				debug.profilebegin(name)
+			end
+
 			callback(result)
+
+			if name then
+				debug.profileend()
+			end
 		else
 			if self.Logging then
 				local logOutput = string.format(
 					Constants.CLIENT_CONNECT_LOG,
-					self._name,
+					name or self._name,
 					tostringData(content),
-					RemotePacketSizeCounter.GetDataByteSize(content)
+					RemotePacketSizeCounter.GetDataByteSize(content),
+					scriptName,
+					line
 				)
 				Output.log(logOutput)
 			end
 
+			if name then
+				debug.profilebegin(name)
+			end
+
 			callback(content)
+
+			if name then
+				debug.profileend()
+			end
 		end
 	end)
 end

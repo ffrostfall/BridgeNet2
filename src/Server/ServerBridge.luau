@@ -32,9 +32,15 @@ function serverBridgePrototype:OutboundMiddleware(
 	self._outboundMiddleware = middlewareTable
 end
 
-function serverBridgePrototype:Connect(callback: (player: Player, content: Types.Content) -> nil): RBXScriptConnection
+function serverBridgePrototype:Connect(
+	callback: (player: Player, content: Types.Content) -> nil,
+	name: string?
+): RBXScriptConnection
 	Output.fatalAssert(tostring(self) == "ServerBridge", "Connect called with . instead of :")
 	Output.typecheck("function", "Connect", "callback", callback)
+
+	local line = debug.info(2, "l")
+	local scriptName = debug.info(2, "s")
 
 	return ServerConnection(self._identifier, function(player, content)
 		if typeof(content) == "table" then
@@ -42,6 +48,7 @@ function serverBridgePrototype:Connect(callback: (player: Player, content: Types
 				return
 			end
 		end
+
 		if self.RateLimitActive then
 			if self._rateMap[player] ~= nil then
 				local currentCount: number = self._rateMap[player]
@@ -52,6 +59,7 @@ function serverBridgePrototype:Connect(callback: (player: Player, content: Types
 
 			task.delay(1, function()
 				local currentCount: number = self._rateMap[player]
+
 				self._rateMap[player] = math.min(0, currentCount - 1)
 			end)
 
@@ -81,32 +89,46 @@ function serverBridgePrototype:Connect(callback: (player: Player, content: Types
 			end
 
 			if self.Logging then
-				if self.Logging then
-					local logOutput = string.format(
-						Constants.SERVER_CONNECT_LOG,
-						self._name,
-						player.Name,
-						tostringData(content),
-						RemotePacketSizeCounter.GetDataByteSize(content)
-					)
-					Output.log(logOutput)
-				end
-			end
-
-			callback(player, result)
-		else
-			if self.Logging then
 				local logOutput = string.format(
 					Constants.SERVER_CONNECT_LOG,
-					self._name,
+					name or self._name,
 					player.Name,
 					tostringData(content),
-					RemotePacketSizeCounter.GetDataByteSize(content)
+					RemotePacketSizeCounter.GetDataByteSize(content),
+					scriptName,
+					line
 				)
 				Output.log(logOutput)
 			end
 
+			if name then
+				debug.profilebegin(name)
+			end
+			callback(player, result)
+			if name then
+				debug.profileend()
+			end
+		else
+			if self.Logging then
+				local logOutput = string.format(
+					Constants.SERVER_CONNECT_LOG,
+					name or self._name,
+					player.Name,
+					tostringData(content),
+					RemotePacketSizeCounter.GetDataByteSize(content),
+					scriptName,
+					line
+				)
+				Output.log(logOutput)
+			end
+
+			if name then
+				debug.profilebegin(name)
+			end
 			callback(player, content)
+			if name then
+				debug.profileend()
+			end
 		end
 	end)
 end
@@ -182,6 +204,7 @@ function serverBridgePrototype:Fire(target: Player | Types.PlayerContainer, cont
 		end
 
 		if self.Logging then
+			Output.log(`{debug.info(2, "s")}:{debug.info(2, "l")}`)
 			local logOutput = string.format(
 				Constants.SERVER_FIRE_LOG,
 				self._name,
@@ -198,19 +221,18 @@ function serverBridgePrototype:Fire(target: Player | Types.PlayerContainer, cont
 		ServerProcess.addToQueue(playerContainer, self._identifier, result)
 	else
 		if self.Logging then
-			if self.Logging then
-				local logOutput = string.format(
-					Constants.SERVER_FIRE_LOG,
-					self._name,
-					if playerContainer.kind == "all"
-						then "{all}"
-						elseif playerContainer.kind == "single" then playerContainer.value.Name
-						else TableKit.ToArrayString(playerContainer.value),
-					tostringData(content),
-					RemotePacketSizeCounter.GetDataByteSize(content)
-				)
-				Output.log(logOutput)
-			end
+			Output.log(`{debug.info(2, "s")}:{debug.info(2, "l")}`)
+			local logOutput = string.format(
+				Constants.SERVER_FIRE_LOG,
+				self._name,
+				if playerContainer.kind == "all"
+					then "{all}"
+					elseif playerContainer.kind == "single" then playerContainer.value.Name
+					else TableKit.ToArrayString(playerContainer.value),
+				tostringData(content),
+				RemotePacketSizeCounter.GetDataByteSize(content)
+			)
+			Output.log(logOutput)
 		end
 
 		ServerProcess.addToQueue(playerContainer, self._identifier, content)
@@ -249,7 +271,6 @@ return function(name: string)
 		if self.OnServerInvoke ~= nil then
 			if (content :: {})[1] == ServerIdentifiers.ref("REQUEST") then
 				local reply = self.OnServerInvoke(player, (content :: {})[2])
-				print(reply)
 				self:Fire(player, { ServerIdentifiers.ref("REQUEST"), reply })
 			end
 		end
