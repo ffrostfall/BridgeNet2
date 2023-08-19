@@ -29,5 +29,5 @@ return function(identifier, callback)
 
 	self._disconnectCallback = ServerProcess.connect(identifier, callback)
 
-	return (self :: unknown) :: RBXScriptConnection
+	return self :: unknown
 end

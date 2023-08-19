@@ -22,5 +22,5 @@ return function()
 		_disconnectCallback = function() end,
 	}, CLASS_METATABLE)
 
-	return (self :: unknown) :: RBXScriptConnection
+	return self :: unknown
 end

@@ -12,7 +12,19 @@ local ServerIdentifiers = require(script.Parent.ServerIdentifiers)
 
 type TOptionalCallback<T> = (() -> T) | (() -> nil) | (() -> ())
 
+--[=[
+	This class handles the server-sided interface of BridgeNet2.
+
+	@class serverBridgePrototype
+]=]
 local serverBridgePrototype = {}
+
+--[=[
+	Sets a function that runs when the server is invoked by the client, should return some values.
+
+    @prop OnServerInvoke (player: Player, content: Types.Content?) -> ...any
+	@within serverBridgePrototype
+]=]
 
 local CLASS_METATABLE = { __index = serverBridgePrototype }
 
@@ -20,11 +32,21 @@ function CLASS_METATABLE:__tostring()
 	return "ServerBridge"
 end
 
+--[=[
+	Sets some middleware to run when a bridge is fired from the client. 
+
+    @param middlewareTable {(player: Player, content: Types.Content) -> any}
+]=]
 function serverBridgePrototype:InboundMiddleware(middlewareTable: { (player: Player, content: Types.Content) -> any })
 	Output.fatalAssert(tostring(self) == "ServerBridge", "InboundMiddleware called with . instead of :")
 	self._inboundMiddleware = middlewareTable
 end
 
+--[=[
+	Sets some middleware to run when a bridge is fired from the backend server.
+
+    @param middlewareTable {(target: Types.PlayerContainer, content: Types.Content) -> any}
+]=]
 function serverBridgePrototype:OutboundMiddleware(
 	middlewareTable: { (target: Types.PlayerContainer, content: Types.Content) -> any }
 )
@@ -32,10 +54,13 @@ function serverBridgePrototype:OutboundMiddleware(
 	self._outboundMiddleware = middlewareTable
 end
 
-function serverBridgePrototype:Connect(
-	callback: (player: Player, content: Types.Content) -> nil,
-	name: string?
-): RBXScriptConnection
+--[=[
+	Connects the bridge to any events recieved from the client, this is when inbound middleware is ran. This shares identical behavior with [RemoteEvent.OnClientEvent].
+
+    @param callback (player: Player, content: Types.Content) -> nil
+    @return RBXScriptConnection
+]=]
+function serverBridgePrototype:Connect(callback: (player: Player, content: Types.Content) -> nil, name: string?)
 	Output.fatalAssert(tostring(self) == "ServerBridge", "Connect called with . instead of :")
 	Output.typecheck("function", "Connect", "callback", callback)
 
@@ -133,6 +158,12 @@ function serverBridgePrototype:Connect(
 	end)
 end
 
+--[=[
+	Sets the rate limit, which makes a bridge only allow `invokesPerSecond` invoke per second.
+
+    @param invokesPerSecond number -- The maximum invokes per second allowed from the client
+    @param overflowFunction (player: Player) -> nil -- The function to run if the client runs over the maximum amount of request
+]=]
 function serverBridgePrototype:RateLimit(invokesPerSecond: number, overflowFunction: (player: Player) -> nil)
 	Output.fatalAssert(tostring(self) == "ServerBridge", "RateLimit called with . instead of :")
 	self.RateLimitActive = true
@@ -140,11 +171,20 @@ function serverBridgePrototype:RateLimit(invokesPerSecond: number, overflowFunct
 	self._maxRate = invokesPerSecond
 end
 
+--[=[
+	Disables the set rate limit for the bridge.
+]=]
 function serverBridgePrototype:DisableRateLimit()
 	Output.fatalAssert(tostring(self) == "ServerBridge", "DisableRateLimit called with . instead of :")
 	self.RateLimitActive = false
 end
 
+--[=[
+	Connects the bridge to any events recieved from the client, this is when inbound middleware is ran. This shares identical behavior with [RemoteEvent.OnClientEvent].
+
+    @yields
+    @return Player, any
+]=]
 function serverBridgePrototype:Wait()
 	Output.fatalAssert(tostring(self) == "ServerBridge", "Wait called with . instead of :")
 	local thread = coroutine.running()
@@ -154,6 +194,12 @@ function serverBridgePrototype:Wait()
 	return coroutine.yield()
 end
 
+--[=[
+	Connects the bridge to any events recieved from the client, this is when inbound middleware is ran. This shares identical behavior with [clientBridgePrototype:Connect] with the difference being that the event instantly disconnects on recieved.
+
+    @param func (player: Player, content: Types.Content) -> ()
+    @return RBXScriptConnection
+]=]
 function serverBridgePrototype:Once(callback: (player: Player, content: Types.Content) -> ())
 	Output.fatalAssert(tostring(self) == "ServerBridge", "Once called with . instead of :")
 	Output.typecheck("function", "Once", "callback", callback)
@@ -166,6 +212,12 @@ function serverBridgePrototype:Once(callback: (player: Player, content: Types.Co
 	return connection
 end
 
+--[=[
+	Fires the bridge from the backend server, which can then be recieved from the client along with packet data sent along.
+
+    @param target Player | Types.PlayerContainer -- The player which the event should be fired to
+    @param content any -- The packet data which should be sent along
+]=]
 function serverBridgePrototype:Fire(target: Player | Types.PlayerContainer, content: any)
 	Output.fatalAssert(tostring(self) == "ServerBridge", "Fire called with . instead of :")
 	local playerContainer: Types.PlayerContainer

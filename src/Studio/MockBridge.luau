@@ -59,7 +59,7 @@ function mockBridgePrototype:Fire(content: any)
 	end
 end
 
-function mockBridgePrototype:Connect(callback: (content: Types.Content) -> ()): RBXScriptConnection
+function mockBridgePrototype:Connect(callback: (content: Types.Content) -> ())
 	Output.fatalAssert(tostring(self) == "ClientBridge", "connect called with . instead of :")
 	Output.typecheck("function", "Connect", "callback", callback)
 
