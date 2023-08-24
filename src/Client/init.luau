@@ -42,11 +42,11 @@ function Client.makeIdentifier(name: string, timeout: number?)
 	return ClientIdentifiers.ref(name, timeout, false)
 end
 
-function Client.makeBridge(name: string)
+function Client.makeBridge(name: string, timeout: number?)
 	if activeBridges[name] then
 		return activeBridges[name]
 	else
-		local bridge = ClientBridge(name)
+		local bridge = ClientBridge(name, timeout or 3)
 
 		activeBridges[name] = bridge
 
