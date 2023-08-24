@@ -282,11 +282,11 @@ function clientBridgePrototype:Destroy()
 	setmetatable(self, nil)
 end
 
-return function(name: string)
+return function(name: string, timeout: number)
 	local self = setmetatable({
 		Logging = false,
 
-		_identifier = ClientIdentifiers.ref(name, 3, true),
+		_identifier = ClientIdentifiers.ref(name, timeout, true),
 		_name = name,
 
 		_inboundMiddleware = {},
