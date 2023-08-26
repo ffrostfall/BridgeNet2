@@ -71,7 +71,7 @@ function mockBridgePrototype:Wait()
 	-- Again, very basic QoL implementation of :Wait()
 	local thread = coroutine.running()
 	self:Once(function(content)
-		coroutine.resume(thread, content)
+		task.spawn(thread, content)
 	end)
 	return coroutine.yield()
 end

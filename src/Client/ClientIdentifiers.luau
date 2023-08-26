@@ -56,7 +56,7 @@ function ClientIdentifiers.loadIdentifier(identifierName: string, value: string)
 	for index, thread in yieldingThreads[identifierName] do
 		-- Resume yielding threads with the compressed identifier.
 		-- This will make the function return the compressed identifier
-		coroutine.resume(thread, value)
+		task.spawn(thread, value)
 
 		-- Insert it to say we aren't yielding this thread anymore
 		table.insert(indexes, index)

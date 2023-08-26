@@ -224,7 +224,7 @@ function clientBridgePrototype:Wait()
 	-- Again, very basic QoL implementation of :Wait()
 	local thread = coroutine.running()
 	self:Once(function(content)
-		coroutine.resume(thread, content)
+		task.spawn(thread, content)
 	end)
 	return coroutine.yield()
 end
@@ -248,7 +248,7 @@ function clientBridgePrototype:InvokeServerAsync(content: any)
 		end
 		if (reply :: {})[1] == ClientIdentifiers.ref("REQUEST", 3, false) then
 			connection()
-			coroutine.resume(thread, (reply :: {})[2])
+			task.spawn(thread, (reply :: {})[2])
 		end
 	end)
 	return coroutine.yield()

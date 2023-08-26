@@ -189,7 +189,7 @@ function serverBridgePrototype:Wait()
 	Output.fatalAssert(tostring(self) == "ServerBridge", "Wait called with . instead of :")
 	local thread = coroutine.running()
 	self:Connect(function(player, content)
-		coroutine.resume(thread, player, content)
+		task.spawn(thread, player, content)
 	end)
 	return coroutine.yield()
 end

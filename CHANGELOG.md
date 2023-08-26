@@ -2,7 +2,12 @@
 
 This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
-## [version 0.5.4](): 8/19/2023
+## [version 0.5.5](): 8/26/2023
+
+### Fixes
+- All coroutine.resume instances have been replaced with task.spawn. This fixes a lot of obscure bugs.
+
+## [version 0.5.4](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.4): 8/19/2023
 
 ### Added
 - You can now name connections, which will show up in logging and in the microprofiler.

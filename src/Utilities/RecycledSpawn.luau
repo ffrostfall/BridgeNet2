@@ -16,7 +16,7 @@ end
 return function(fn: (...any) -> (), ...): ()
 	if freeThread == nil then
 		freeThread = coroutine.create(yielder)
-		coroutine.resume(freeThread :: thread)
+		task.spawn(freeThread :: thread)
 	end
 	task.spawn(freeThread :: thread, fn, ...)
 end
