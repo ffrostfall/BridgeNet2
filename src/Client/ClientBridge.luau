@@ -12,7 +12,7 @@ local tostringData = require(script.Parent.Parent.Utilities.tostringData)
 --[=[
 	This class handles the client-sided interface of BridgeNet2.
 
-	@class clientBridgePrototype
+	@class ClientBridge
 ]=]
 local clientBridgePrototype = {}
 
@@ -25,6 +25,7 @@ end
 --[=[
 	Sets the rate limit, cannot be used client-sided.
 	
+	@within ClientBridge
 	@ignore
 	@return string
 ]=]
@@ -35,6 +36,7 @@ end
 --[=[
 	Disables the rate limit, cannot be used client-sided.
 
+	@within ClientBridge
 	@ignore
 	@return string
 ]=]
@@ -45,6 +47,7 @@ end
 --[=[
 	Sets some middleware to run when a bridge is fired from the server. 
 
+	@within ClientBridge
 	@param middlewareTable {(object: any) -> any}
 ]=]
 function clientBridgePrototype:InboundMiddleware(middlewareTable: { (object: any) -> any })
@@ -61,6 +64,7 @@ end
 --[=[
 	Sets some middleware to run when a bridge is fired from the local client. 
 
+	@within ClientBridge
 	@param middlewareTable {(object: any) -> any}
 ]=]
 function clientBridgePrototype:OutboundMiddleware(middlewareTable: { (object: any) -> any })
@@ -77,6 +81,7 @@ end
 --[=[
 	Fires the bridge locally, which can then be recieved from the server along with packet data sent along.
 
+	@within ClientBridge
 	@param content any
 ]=]
 function clientBridgePrototype:Fire(content: any)
@@ -131,6 +136,7 @@ end
 --[=[
 	Connects the bridge to any events recieved from the server, this is when inbound middleware is ran. This shares identical behavior with [RemoteEvent.OnServerEvent:Connect].
 	
+	@within ClientBridge
 	@param callback (content: Types.Content) -> ()
 	@return RBXScriptConnection
 ]=]
@@ -216,6 +222,7 @@ end
 --[=[
 	Connects the bridge to any events recieved from the server, this is when inbound middleware is ran. This shares identical behavior with [RemoteEvent.OnServerEvent:Wait].
 	
+	@within ClientBridge
 	@yields
 	@return any
 ]=]
@@ -233,7 +240,7 @@ end
 	Invokes the server, then returns a value afterwards. This function yields the thread until content is recieved.
 	
 	@yields
-	
+	@within ClientBridge
 	@param content any
 	@return any
 ]=]
@@ -257,6 +264,7 @@ end
 --[=[
 	Connects the bridge to any events recieved from the server, this is when inbound middleware is ran. This shares identical behavior with [clientBridgePrototype:Connect] with the difference being that the event instantly disconnects on recieved.
 	
+	@within ClientBridge
 	@param func (content: Types.Content) -> ()
 	@return RBXScriptConnection
 ]=]
@@ -274,6 +282,7 @@ end
 
 --[=[
 	Destroys the bridge it was called on.
+	@within ClientBridge
 ]=]
 function clientBridgePrototype:Destroy()
 	Output.fatalAssert(tostring(self) == "ClientBridge", "Destroy called with . instead of :")

@@ -15,15 +15,15 @@ type TOptionalCallback<T> = (() -> T) | (() -> nil) | (() -> ())
 --[=[
 	This class handles the server-sided interface of BridgeNet2.
 
-	@class serverBridgePrototype
+	@class ServerBridge
 ]=]
 local serverBridgePrototype = {}
 
 --[=[
 	Sets a function that runs when the server is invoked by the client, should return some values.
 
+	@within ServerBridge
 	@prop OnServerInvoke (player: Player, content: Types.Content?) -> ...any
-	@within serverBridgePrototype
 ]=]
 
 local CLASS_METATABLE = { __index = serverBridgePrototype }
@@ -35,6 +35,7 @@ end
 --[=[
 	Sets some middleware to run when a bridge is fired from the client. 
 
+	@within ServerBridge
 	@param middlewareTable {(player: Player, content: Types.Content) -> any}
 ]=]
 function serverBridgePrototype:InboundMiddleware(middlewareTable: { (player: Player, content: Types.Content) -> any })
@@ -45,6 +46,7 @@ end
 --[=[
 	Sets some middleware to run when a bridge is fired from the backend server.
 
+	@within ServerBridge
 	@param middlewareTable {(target: Types.PlayerContainer, content: Types.Content) -> any}
 ]=]
 function serverBridgePrototype:OutboundMiddleware(
@@ -57,6 +59,7 @@ end
 --[=[
 	Connects the bridge to any events recieved from the client, this is when inbound middleware is ran. This shares identical behavior with [RemoteEvent.OnClientEvent].
 
+	@within ServerBridge
 	@param callback (player: Player, content: Types.Content) -> nil
 	@return RBXScriptConnection
 ]=]
@@ -161,6 +164,7 @@ end
 --[=[
 	Sets the rate limit, which makes a bridge only allow `invokesPerSecond` invoke per second.
 
+	@within ServerBridge
 	@param invokesPerSecond number -- The maximum invokes per second allowed from the client
 	@param overflowFunction (player: Player) -> nil -- The function to run if the client runs over the maximum amount of request
 ]=]
@@ -173,6 +177,7 @@ end
 
 --[=[
 	Disables the set rate limit for the bridge.
+	@within ServerBridge
 ]=]
 function serverBridgePrototype:DisableRateLimit()
 	Output.fatalAssert(tostring(self) == "ServerBridge", "DisableRateLimit called with . instead of :")
@@ -182,6 +187,7 @@ end
 --[=[
 	Connects the bridge to any events recieved from the client, this is when inbound middleware is ran. This shares identical behavior with [RemoteEvent.OnClientEvent].
 
+	@within ServerBridge
 	@yields
 	@return Player, any
 ]=]
@@ -195,8 +201,9 @@ function serverBridgePrototype:Wait()
 end
 
 --[=[
-	Connects the bridge to any events recieved from the client, this is when inbound middleware is ran. This shares identical behavior with [clientBridgePrototype:Connect] with the difference being that the event instantly disconnects on recieved.
+	Connects the bridge to any events recieved from the client, this is when inbound middleware is ran. This shares identical behavior with [ClientBridge:Connect] with the difference being that the event instantly disconnects on recieved.
 
+	@within ServerBridge
 	@param callback (player: Player, content: Types.Content) -> ()
 	@return RBXScriptConnection
 ]=]
@@ -215,6 +222,7 @@ end
 --[=[
 	Fires the bridge from the backend server, which can then be recieved from the client along with packet data sent along.
 
+	@within ServerBridge
 	@param target Player | Types.PlayerContainer -- The player which the event should be fired to
 	@param content any -- The packet data which should be sent along
 ]=]
