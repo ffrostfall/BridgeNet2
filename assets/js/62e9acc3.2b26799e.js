@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[461],{53855:e=>{e.exports=JSON.parse('{"functions":[],"properties":[],"types":[],"name":"BridgeNet2","desc":"The parent of all classes.","source":{"line":30,"path":"src/init.luau"}}')}}]);
