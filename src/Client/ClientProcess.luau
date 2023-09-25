@@ -1,7 +1,7 @@
 --!strict
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local wallyInstanceManager = require(script.Parent.Parent.Parent.wallyInstanceManager)
 local Types = require(script.Parent.Parent.Types)
 local Output = require(script.Parent.Parent.Utilities.Output)
 local RecycledSpawn = require(script.Parent.Parent.Utilities.RecycledSpawn)
@@ -19,8 +19,10 @@ function ClientProcess.start()
 	Output.log(`Loading client version {version}`)
 
 	-- :WaitForChild() to confirm instances exist, we're in another thread.
-	local DataRemoteEvent: RemoteEvent = ReplicatedStorage:WaitForChild("dataRemoteEvent")
-	local MetaRemoteEvent: RemoteEvent = ReplicatedStorage:WaitForChild("metaRemoteEvent")
+	local DataRemoteEvent: RemoteEvent =
+		wallyInstanceManager.waitForInstance(script.Parent.Parent.Parent, "dataRemoteEvent", 1)
+	local MetaRemoteEvent: RemoteEvent =
+		wallyInstanceManager.waitForInstance(script.Parent.Parent.Parent, "metaRemoteEvent", 1)
 
 	DataRemoteEvent.OnClientEvent:Connect(function(receivedData)
 		table.insert(inboundQueue, receivedData)
