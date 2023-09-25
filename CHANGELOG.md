@@ -5,7 +5,7 @@ This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 ## [version 0.5.6](): 9/25/2023
 
 ### Added
-- Now uses a system to manage package verison control w/ instances. This ensures that even if you're running 2 separate versions of BridgeNet2, it will communicate correctly, and everything will work as expected.
+- Now uses a system to manage package version control w/ instances. This ensures that even if you're running 2 separate versions of BridgeNet2, it will communicate correctly, and everything will work as expected.
 
 ## [version 0.5.5](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.5): 8/26/2023
 
