@@ -24,8 +24,8 @@ end
 
 --[=[
 	Sets the rate limit, cannot be used client-sided.
-
-    @ignore
+	
+	@ignore
 	@return string
 ]=]
 function clientBridgePrototype:RateLimit()
@@ -35,7 +35,7 @@ end
 --[=[
 	Disables the rate limit, cannot be used client-sided.
 
-    @ignore
+	@ignore
 	@return string
 ]=]
 function clientBridgePrototype:DisableRateLimit()
@@ -45,7 +45,7 @@ end
 --[=[
 	Sets some middleware to run when a bridge is fired from the server. 
 
-    @param middlewareTable {(object: any) -> any}
+	@param middlewareTable {(object: any) -> any}
 ]=]
 function clientBridgePrototype:InboundMiddleware(middlewareTable: { (object: any) -> any })
 	Output.fatalAssert(tostring(self) == "ClientBridge", "InboundMiddleware called with . instead of :")
@@ -61,7 +61,7 @@ end
 --[=[
 	Sets some middleware to run when a bridge is fired from the local client. 
 
-    @param middlewareTable {(object: any) -> any}
+	@param middlewareTable {(object: any) -> any}
 ]=]
 function clientBridgePrototype:OutboundMiddleware(middlewareTable: { (object: any) -> any })
 	Output.fatalAssert(tostring(self) == "ClientBridge", "OutboundMiddleware called with . instead of :")
@@ -77,7 +77,7 @@ end
 --[=[
 	Fires the bridge locally, which can then be recieved from the server along with packet data sent along.
 
-    @param content any
+	@param content any
 ]=]
 function clientBridgePrototype:Fire(content: any)
 	Output.fatalAssert(tostring(self) == "ClientBridge", "Fire called with . instead of :")
@@ -130,9 +130,9 @@ end
 
 --[=[
 	Connects the bridge to any events recieved from the server, this is when inbound middleware is ran. This shares identical behavior with [RemoteEvent.OnServerEvent:Connect].
-
-    @param callback (content: Types.Content) -> ()
-    @return RBXScriptConnection
+	
+	@param callback (content: Types.Content) -> ()
+	@return RBXScriptConnection
 ]=]
 function clientBridgePrototype:Connect(callback: (content: Types.Content) -> (), name: string?)
 	Output.fatalAssert(tostring(self) == "ClientBridge", "connect called with . instead of :")
@@ -215,9 +215,9 @@ end
 
 --[=[
 	Connects the bridge to any events recieved from the server, this is when inbound middleware is ran. This shares identical behavior with [RemoteEvent.OnServerEvent:Wait].
-
-    @yields
-    @return any
+	
+	@yields
+	@return any
 ]=]
 function clientBridgePrototype:Wait()
 	Output.fatalAssert(tostring(self) == "ClientBridge", "Wait called with . instead of :")
@@ -231,11 +231,11 @@ end
 
 --[=[
 	Invokes the server, then returns a value afterwards. This function yields the thread until content is recieved.
-
-    @yields
-
-    @param content any
-    @return any
+	
+	@yields
+	
+	@param content any
+	@return any
 ]=]
 function clientBridgePrototype:InvokeServerAsync(content: any)
 	Output.fatalAssert(tostring(self) == "ClientBridge", "InvokeServerAsync called with . instead of :")
@@ -256,9 +256,9 @@ end
 
 --[=[
 	Connects the bridge to any events recieved from the server, this is when inbound middleware is ran. This shares identical behavior with [clientBridgePrototype:Connect] with the difference being that the event instantly disconnects on recieved.
-
-    @param func (content: Types.Content) -> ()
-    @return RBXScriptConnection
+	
+	@param func (content: Types.Content) -> ()
+	@return RBXScriptConnection
 ]=]
 function clientBridgePrototype:Once(func: (content: Types.Content) -> ())
 	Output.fatalAssert(tostring(self) == "ClientBridge", "Once called with . instead of :")
