@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[972],{3891:e=>{e.exports=JSON.parse('{"sourceUrl":"https://github.com/ffrostflame/bridgenet2//blob/master","baseUrl":"/BridgeNet2/","classOrder":[],"apiCategories":[]}')}}]);

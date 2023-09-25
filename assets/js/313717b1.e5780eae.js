@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[10],{7636:e=>{e.exports=JSON.parse('[{"type":"link","href":"/api/BridgeNet2","label":"\u200bBridge\u200bNet2"},{"type":"link","href":"/api/clientBridgePrototype","label":"client\u200bBridge\u200bPrototype"},{"type":"link","href":"/api/serverBridgePrototype","label":"server\u200bBridge\u200bPrototype"}]')}}]);
