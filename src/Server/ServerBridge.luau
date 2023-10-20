@@ -320,10 +320,12 @@ return function(name: string)
 		if typeof(content) ~= "table" then
 			return
 		end
+
 		if self.OnServerInvoke ~= nil then
 			if (content :: {})[1] == ServerIdentifiers.ref("REQUEST") then
-				local reply = self.OnServerInvoke(player, (content :: {})[2])
-				self:Fire(player, { ServerIdentifiers.ref("REQUEST"), reply })
+				local reply = self.OnServerInvoke(player, (content :: {})[3])
+
+				self:Fire(player, { ServerIdentifiers.ref("REQUEST"), (content :: {})[2], reply })
 			end
 		end
 	end)

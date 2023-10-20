@@ -50,13 +50,23 @@ function ClientProcess.start()
 
 				if #calls == 1 then
 					local callback = calls[1]
-					for _, content in data do
-						RecycledSpawn(callback, content)
+					if #data == 0 then
+						RecycledSpawn(callback)
+					else
+						for _, content in data do
+							RecycledSpawn(callback, content)
+						end
 					end
 				else
-					for _, content in data do
+					if #data == 0 then
 						for _, callback in calls do
-							RecycledSpawn(callback, content)
+							RecycledSpawn(callback)
+						end
+					else
+						for _, callback in calls do
+							for _, content in data do
+								RecycledSpawn(callback, content)
+							end
 						end
 					end
 				end

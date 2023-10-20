@@ -7,6 +7,7 @@ local Output = require(script.Parent.Parent.Utilities.Output)
 local TableKit = require(script.Parent.Parent.Parent.TableKit)
 local RemotePacketSizeCounter = require(script.Parent.Parent.Parent.RemotePacketSizeCounter)
 local Types = require(script.Parent.Parent.Types)
+local NetworkUtils = require(script.Parent.Parent.Utilities.NetworkUtils)
 local tostringData = require(script.Parent.Parent.Utilities.tostringData)
 
 --[=[
@@ -239,14 +240,18 @@ end
 ]=]
 function clientBridgePrototype:InvokeServerAsync(content: any)
 	Output.fatalAssert(tostring(self) == "ClientBridge", "InvokeServerAsync called with . instead of :")
-	self:Fire({ ClientIdentifiers.ref("REQUEST", 3, false), content })
+
+	local id = NetworkUtils.FromHex(NetworkUtils.CreateUUID())
+
+	self:Fire({ ClientIdentifiers.ref("REQUEST", 3, false), id, content })
+
 	local thread = coroutine.running()
 	local connection
 	connection = ClientProcess.connect(self._identifier, function(reply)
 		if typeof(reply) ~= "table" then
 			return
 		end
-		if (reply :: {})[1] == ClientIdentifiers.ref("REQUEST", 3, false) then
+		if (reply :: {})[1] == ClientIdentifiers.ref("REQUEST", 3, false) and (reply :: {})[2] == id then
 			connection()
 			task.spawn(thread, (reply :: {})[2])
 		end

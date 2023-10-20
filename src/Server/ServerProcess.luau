@@ -167,7 +167,8 @@ function ServerProcess.start()
 							if not loadingPlayersQueue[player][identifier] then
 								loadingPlayersQueue[player][identifier] = content
 							else
-								TableKit.MergeArrays(loadingPlayersQueue[player][identifier], content)
+								loadingPlayersQueue[player][identifier] =
+									TableKit.MergeArrays(loadingPlayersQueue[player][identifier], content)
 							end
 						end
 					end
@@ -206,7 +207,9 @@ function ServerProcess.start()
 
 						for _, callback in callbacks do
 							debug.profilebegin(tostring(ServerIdentifiers.deser(identifier)))
+
 							RecycledSpawn(callback, plr, content)
+
 							debug.profileend()
 						end
 					end
