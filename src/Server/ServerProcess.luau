@@ -1,11 +1,11 @@
 --!strict
 local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local HandleInvalidPlayer = require(script.Parent.HandleInvalidPlayer)
 local Output = require(script.Parent.Parent.Utilities.Output)
 local TableKit = require(script.Parent.Parent.Parent.TableKit)
+local wallyInstanceManager = require(script.Parent.Parent.Parent.wallyInstanceManager)
 local Types = require(script.Parent.Parent.Types)
 local RecycledSpawn = require(script.Parent.Parent.Utilities.RecycledSpawn)
 local version = require(script.Parent.Parent.version)
@@ -47,22 +47,22 @@ function ServerProcess.start()
 		local metaRemoteEvent
 		local dataRemoteEvent
 
-		local potentialMetaRemoteEvent = ReplicatedStorage:FindFirstChild("metaRemoteEvent")
+		local potentialMetaRemoteEvent = wallyInstanceManager.get(script.Parent.Parent.Parent, "metaRemoteEvent")
 		if potentialMetaRemoteEvent then
 			metaRemoteEvent = potentialMetaRemoteEvent
 		else
 			metaRemoteEvent = Instance.new("RemoteEvent")
 			metaRemoteEvent.Name = "metaRemoteEvent"
-			metaRemoteEvent.Parent = ReplicatedStorage
+			wallyInstanceManager.add(script.Parent.Parent.Parent, metaRemoteEvent)
 		end
 
-		local potentialDataRemoteEvent = ReplicatedStorage:FindFirstChild("dataRemoteEvent")
+		local potentialDataRemoteEvent = wallyInstanceManager.get(script.Parent.Parent.Parent, "dataRemoteEvent")
 		if potentialDataRemoteEvent then
 			dataRemoteEvent = potentialDataRemoteEvent
 		else
 			dataRemoteEvent = Instance.new("RemoteEvent")
 			dataRemoteEvent.Name = "dataRemoteEvent"
-			dataRemoteEvent.Parent = ReplicatedStorage
+			wallyInstanceManager.add(script.Parent.Parent.Parent, dataRemoteEvent)
 		end
 
 		Players.PlayerAdded:Connect(playerAdded)

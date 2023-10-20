@@ -1,6 +1,5 @@
 --!strict
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
+local wallyInstanceManager = require(script.Parent.Parent.Parent.wallyInstanceManager)
 local Types = require(script.Parent.Parent.Types)
 local Output = require(script.Parent.Parent.Utilities.Output)
 
@@ -13,7 +12,7 @@ local ClientIdentifiers = {}
 
 function ClientIdentifiers.start()
 	-- Wait for IdentifierStorage to exist, since we're on the client and load order isn't guaranteed.
-	identifierStorage = ReplicatedStorage:WaitForChild("identifierStorage")
+	identifierStorage = wallyInstanceManager.waitForInstance(script.Parent.Parent.Parent, "identifierStorage", 1)
 
 	-- Loop through every single existing identifer, stored as an attribute.
 	-- Simply parse them into the system.

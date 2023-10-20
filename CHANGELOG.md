@@ -2,31 +2,45 @@
 
 This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
-## [version 0.5.5](): 8/26/2023
+## [version](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.6): 9/25/2023
+
+## [version 0.5.6](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.6): 9/25/2023
+
+### Added
+
+- Now uses a system to manage package version control w/ instances. This ensures that even if you're running 2 separate versions of BridgeNet2, it will communicate correctly, and everything will work as expected.
+
+## [version 0.5.5](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.5): 8/26/2023
 
 ### Fixes
+
 - All coroutine.resume instances have been replaced with task.spawn. This fixes a lot of obscure bugs.
 
 ## [version 0.5.4](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.4): 8/19/2023
 
 ### Added
+
 - You can now name connections, which will show up in logging and in the microprofiler.
 - Calling script and line are now shown for connections and firing bridges
 
 ### Improvements
+
 - Type improvements
 
 ## [version 0.5.3](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.3): 7/31/2023
 
 ### Added
+
 - A mock API for when BridgeNet2 is ran in edit mode. Limitations: InvokeServerAsync will infinitely yield, connections will never run.
 
 ### Improvements
+
 - BridgeNet2 nows prints the current version upon being loaded
 - Improved output readability
 - **Potentially breaking:** Bridges now are cached- this means you will have the same bridge object across scripts. This should be more expected behavior, and should overall be an improvement.
 
 ### Fixes
+
 - Potentially fixed some issues with loading and identifiers?
 - Fixed a bug where referencing a bridge multiple times clearing connections each time (Except on the client this time)
 

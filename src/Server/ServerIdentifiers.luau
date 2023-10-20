@@ -1,7 +1,6 @@
 --!strict
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
 local Constants = require(script.Parent.Parent.Constants)
+local wallyInstanceManager = require(script.Parent.Parent.Parent.wallyInstanceManager)
 local Types = require(script.Parent.Parent.Types)
 local Output = require(script.Parent.Parent.Utilities.Output)
 
@@ -13,13 +12,13 @@ local compressedIdentifierMap = {}
 local identifierStorage: Folder
 
 function ServerIdentifiers.start()
-	local potentialIdentifierStorage = ReplicatedStorage:FindFirstChild("identifierStorage")
+	local potentialIdentifierStorage = wallyInstanceManager.get(script.Parent.Parent.Parent, "identifierStorage")
 	if potentialIdentifierStorage then
 		identifierStorage = potentialIdentifierStorage
 	else
 		identifierStorage = Instance.new("Folder")
 		identifierStorage.Name = "identifierStorage"
-		identifierStorage.Parent = ReplicatedStorage
+		wallyInstanceManager.add(script.Parent.Parent.Parent, identifierStorage)
 	end
 
 	ServerIdentifiers.ref("NIL_VALUE")

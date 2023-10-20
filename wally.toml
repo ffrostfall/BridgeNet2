@@ -1,6 +1,6 @@
 [package]
 name = "ffrostflame/bridgenet2"
-version = "0.5.5"
+version = "0.5.6"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 description = "The successor to BridgeNet, BridgeNet2 is a blazing-fast networking library designed for scale and performance."
@@ -9,3 +9,4 @@ license = "MIT"
 [dependencies]
 TableKit = "ffrostflame/tablekit@0.2.4"
 RemotePacketSizeCounter = "pysephwasntavailable/remotepacketsizecounter@2.1.0"
+wallyInstanceManager = "ffrostflame/wally-instance-manager@0.1.0"
