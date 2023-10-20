@@ -260,7 +260,7 @@ function clientBridgePrototype:InvokeServerAsync(content: any)
 		end
 		if (reply :: {})[1] == ClientIdentifiers.ref("REQUEST", 3, false) and (reply :: {})[2] == id then
 			connection()
-			task.spawn(thread, (reply :: {})[2])
+			task.spawn(thread, (reply :: {})[3])
 		end
 	end)
 	return coroutine.yield()

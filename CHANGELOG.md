@@ -2,7 +2,22 @@
 
 This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
-## [version](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.6): 9/25/2023
+## [version 1.0.0](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.6): 10/20/2023
+
+### Added
+
+- Added an easy way to type payloads using generics. This will be elaborated on in documentation later
+
+### Fixes
+
+- Fixed sending singular nil values with nothing else in the frame
+- Fixed a bug w/ the loading queue. Finally got around to that (https://github.com/ffrostflame/BridgeNet2/issues/35)
+- Type improvements
+
+### Improvements
+
+- Added unique IDs to the invoke functionality. Should fix a multitude of bugs.
+- Re-did rate limiting. I'm confident that it's stable.
 
 ## [version 0.5.6](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.6): 9/25/2023
 

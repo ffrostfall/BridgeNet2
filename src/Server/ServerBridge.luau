@@ -78,20 +78,24 @@ function serverBridgePrototype:Connect(callback: (player: Player, content: Types
 		end
 
 		if self.RateLimitActive then
+			-- get the current second
+			local thisSecond = math.round(os.clock() - os.clock() % 1)
+
 			if self._rateMap[player] ~= nil then
-				local currentCount: number = self._rateMap[player]
-				self._rateMap[player] = currentCount + 1
+				local lastSecond = self._rateMap[player][1] or 0
+
+				if lastSecond ~= thisSecond then
+					self._rateMap[player][2] = 0
+
+					self._rateMap[player][1] = thisSecond
+				else
+					self._rateMap[player][2] += 1
+				end
 			else
-				self._rateMap[player] = 1
+				self._rateMap[player] = { thisSecond, 1 }
 			end
 
-			task.delay(1, function()
-				local currentCount: number = self._rateMap[player]
-
-				self._rateMap[player] = math.min(0, currentCount - 1)
-			end)
-
-			if self._rateMap[player] >= self._maxRate then
+			if self._rateMap[player][2] >= self._maxRate then
 				if not self._overflowFunction(player) then
 					return
 				end
@@ -316,7 +320,7 @@ return function(name: string)
 		-- Rate limiting
 		RateLimitActive = false,
 		_maxRate = 500,
-		_rateMap = {} :: { [Player]: number },
+		_rateMap = {} :: { [Player]: { number } },
 		_overflowFunction = function()
 			return false
 		end,

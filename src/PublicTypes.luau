@@ -1,31 +1,31 @@
 --!strict
 local Types = require(script.Parent.Types)
 
-type ServerBridge = {
+export type ServerBridge<send> = {
 	Fire: (
-		self: ServerBridge,
+		self: ServerBridge<send>,
 		target: Player | (Types.AllPlayerContainer | Types.SetPlayerContainer),
-		content: Types.Content
+		content: send
 	) -> (),
 	Connect: (
-		self: ServerBridge,
+		self: ServerBridge<send>,
 		callback: (player: Player, content: Types.Content?) -> (),
 		name: string?
 	) -> Connection,
-	Once: (self: ServerBridge, callback: (player: Player, content: Types.Content?) -> ()) -> (),
-	Wait: (self: ServerBridge, callback: (player: Player, content: Types.Content?) -> ()) -> (Player, Types.Content?),
+	Once: (self: ServerBridge<send>, callback: (player: Player, content: Types.Content?) -> ()) -> (),
+	Wait: (self: ServerBridge<send>) -> (Player, Types.Content?),
 
 	OnServerInvoke: ((player: Player, content: Types.Content) -> ...any)?,
 	RateLimitActive: boolean,
 	Logging: boolean,
 }
-type ClientBridge = {
-	Fire: (self: ClientBridge, content: any?) -> (),
-	Connect: (self: ClientBridge, callback: (content: Types.Content?) -> (), name: string?) -> Connection,
-	Once: (self: ClientBridge, callback: (content: Types.Content?) -> ()) -> (),
-	Wait: (self: ClientBridge, callback: (content: Types.Content?) -> ()) -> Types.Content?,
+export type ClientBridge<send, receive> = {
+	Fire: (self: ClientBridge<send, receive>, content: send) -> (),
+	Connect: (self: ClientBridge<send, receive>, callback: (content: receive) -> (), name: string?) -> Connection,
+	Once: (self: ClientBridge<send, receive>, callback: (content: receive) -> ()) -> (),
+	Wait: (self: ClientBridge<send, receive>, callback: (content: receive) -> ()) -> receive,
 
-	InvokeServerAsync: (self: ClientBridge, content: any?) -> ...Types.Content?,
+	InvokeServerAsync: (self: ClientBridge<send, receive>, content: send) -> receive,
 
 	Logging: boolean,
 }
@@ -34,13 +34,13 @@ type Connection = {
 	Disconnect: () -> (),
 }
 
-export type Bridge = ServerBridge & ClientBridge
+export type Bridge = ServerBridge<any> & ClientBridge<any, any>
 
 export type BridgeNet2 = {
 	ReferenceBridge: (name: string) -> Bridge,
 
-	ClientBridge: (name: string) -> ClientBridge,
-	ServerBridge: (name: string) -> ServerBridge,
+	ClientBridge: (name: string) -> ClientBridge<any, any>,
+	ServerBridge: (name: string) -> ServerBridge<any>,
 
 	ReferenceIdentifier: (name: string, maxWaitTime: number?) -> Types.Identifier,
 

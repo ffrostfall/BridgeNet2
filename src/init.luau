@@ -109,13 +109,14 @@ local BridgeNet2 = {
 	Players = Server.playerContainers().Players,
 
 	ReferenceBridge = if isServer then Server.makeBridge else Client.makeBridge,
-
 	ServerBridge = if isServer then Server.makeBridge else nil,
-
 	ClientBridge = if not isServer then Client.makeBridge else nil,
+
+	Types = script.ExportedTypes,
 
 	HandleInvalidPlayer = function(handler: (player: Player) -> ())
 		Output.fatalAssert(isServer, "Cannot call from client")
+
 		Server.invalidPlayerhandler(handler)
 	end,
 

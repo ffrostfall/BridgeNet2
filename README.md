@@ -2,7 +2,7 @@
 <img src=".moonwave/static/logo.png" width="256" />
 </div>
 
-# BridgeNet2 v0.5.5
+# BridgeNet2 v1.0.0
 
 ## Blazing fast & opinionated networking library designed to reduce bandwidth.
 
@@ -15,4 +15,3 @@ Developers cannot fire a bridge with multiple parameters. This means you have to
 This library favors performance, and therefore we made choices that resulted in an opinionated library. BridgeNet2 never manipulates your data under the hood, but it does encourage developing in favor of performance.
 
 [Further Documentation](https://ffrostflame.github.io/BridgeNet2/)
-

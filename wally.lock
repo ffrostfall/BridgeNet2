@@ -4,7 +4,7 @@ registry = "test"
 
 [[package]]
 name = "ffrostflame/bridgenet2"
-version = "0.5.5"
+version = "0.5.6"
 dependencies = [["RemotePacketSizeCounter", "pysephwasntavailable/remotepacketsizecounter@2.1.0"], ["TableKit", "ffrostflame/tablekit@0.2.4"], ["wallyInstanceManager", "ffrostflame/wally-instance-manager@0.1.0"]]
 
 [[package]]
