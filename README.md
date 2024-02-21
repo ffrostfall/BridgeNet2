@@ -1,3 +1,5 @@
+# I strongly recommend you use ByteNet over BridgeNet2: https://github.com/ffrostflame/ByteNet
+
 <div align="center">
 <img src=".moonwave/static/logo.png" width="256" />
 </div>
