@@ -3,17 +3,17 @@
 registry = "test"
 
 [[package]]
-name = "ffrostflame/bridgenet2"
+name = "ffrostfall/bridgenet2"
 version = "1.0.0"
-dependencies = [["RemotePacketSizeCounter", "pysephwasntavailable/remotepacketsizecounter@2.1.0"], ["TableKit", "ffrostflame/tablekit@0.2.4"], ["wallyInstanceManager", "ffrostflame/wally-instance-manager@0.1.0"]]
+dependencies = [["RemotePacketSizeCounter", "pysephwasntavailable/remotepacketsizecounter@2.1.0"], ["TableKit", "ffrostfall/tablekit@0.2.4"], ["wallyInstanceManager", "ffrostfall/wally-instance-manager@0.1.0"]]
 
 [[package]]
-name = "ffrostflame/tablekit"
+name = "ffrostfall/tablekit"
 version = "0.2.4"
 dependencies = []
 
 [[package]]
-name = "ffrostflame/wally-instance-manager"
+name = "ffrostfall/wally-instance-manager"
 version = "0.1.0"
 dependencies = []
 

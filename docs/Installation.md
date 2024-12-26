@@ -10,9 +10,9 @@ If you're using Wally, you can simply drop this snippet in, except replace `late
 
 ```toml title="wally.toml"
 [dependencies]
-BridgeNet2 = "ffrostflame/bridgenet2@latest"
+BridgeNet2 = "ffrostfall/bridgenet2@latest"
 ```
 
 ## Standalone
 
-Download `standalone.rbxm` from the [latest release](https://github.com/ffrostflame/BridgeNet2/releases/latest), and then insert it into your Roblox game.
+Download `standalone.rbxm` from the [latest release](https://github.com/ffrostfall/BridgeNet2/releases/latest), and then insert it into your Roblox game.

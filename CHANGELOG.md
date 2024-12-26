@@ -2,7 +2,7 @@
 
 This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
-## [version 1.0.0](https://github.com/ffrostflame/BridgeNet2/releases/tag/v1.0.0): 10/20/2023
+## [version 1.0.0](https://github.com/ffrostfall/BridgeNet2/releases/tag/v1.0.0): 10/20/2023
 
 ### Added
 
@@ -11,7 +11,7 @@ This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 ### Fixes
 
 - Fixed sending singular nil values with nothing else in the frame
-- Fixed a bug w/ the loading queue. Finally got around to that (https://github.com/ffrostflame/BridgeNet2/issues/35)
+- Fixed a bug w/ the loading queue. Finally got around to that (https://github.com/ffrostfall/BridgeNet2/issues/35)
 - Type improvements
 
 ### Improvements
@@ -19,19 +19,19 @@ This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 - Added unique IDs to the invoke functionality. Should fix a multitude of bugs.
 - Re-did rate limiting. I'm confident that it's stable.
 
-## [version 0.5.6](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.6): 9/25/2023
+## [version 0.5.6](https://github.com/ffrostfall/BridgeNet2/releases/tag/v0.5.6): 9/25/2023
 
 ### Added
 
 - Now uses a system to manage package version control w/ instances. This ensures that even if you're running 2 separate versions of BridgeNet2, it will communicate correctly, and everything will work as expected.
 
-## [version 0.5.5](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.5): 8/26/2023
+## [version 0.5.5](https://github.com/ffrostfall/BridgeNet2/releases/tag/v0.5.5): 8/26/2023
 
 ### Fixes
 
 - All coroutine.resume instances have been replaced with task.spawn. This fixes a lot of obscure bugs.
 
-## [version 0.5.4](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.4): 8/19/2023
+## [version 0.5.4](https://github.com/ffrostfall/BridgeNet2/releases/tag/v0.5.4): 8/19/2023
 
 ### Added
 
@@ -42,7 +42,7 @@ This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
 - Type improvements
 
-## [version 0.5.3](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.3): 7/31/2023
+## [version 0.5.3](https://github.com/ffrostfall/BridgeNet2/releases/tag/v0.5.3): 7/31/2023
 
 ### Added
 
@@ -59,7 +59,7 @@ This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 - Potentially fixed some issues with loading and identifiers?
 - Fixed a bug where referencing a bridge multiple times clearing connections each time (Except on the client this time)
 
-## [version 0.5.2](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.2): 7/15/2023
+## [version 0.5.2](https://github.com/ffrostfall/BridgeNet2/releases/tag/v0.5.2): 7/15/2023
 
 ### Improvements
 
@@ -70,7 +70,7 @@ This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 - Fixed a bug where referencing a bridge multiple times clearing connections each time
 - Fixed a bug where the player loading before BridgeNet2 starts would never initialize the player
 
-## [version 0.5.0](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.5.0): 6/21/2023
+## [version 0.5.0](https://github.com/ffrostfall/BridgeNet2/releases/tag/v0.5.0): 6/21/2023
 
 ### **Added**
 
@@ -89,13 +89,13 @@ This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 - Type improvements
 - `tostring()`-ing a bridge will now return its class type
 
-## [version 0.4.1](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.4.1): 6/11/2023
+## [version 0.4.1](https://github.com/ffrostfall/BridgeNet2/releases/tag/v0.4.1): 6/11/2023
 
 ### **Fixes**
 
 - Fixed some behavior w/ nil values
 
-## [version 0.4.0](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.4.0): 6/10/2023
+## [version 0.4.0](https://github.com/ffrostfall/BridgeNet2/releases/tag/v0.4.0): 6/10/2023
 
 ### **Added**
 
@@ -115,7 +115,7 @@ This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 - Improved logger readability.
 - I made a script to automate releases- there should hopefully be less inconsistencies with releases from now on.
 
-## [version 0.3.0](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.3.0): 6/8/2023
+## [version 0.3.0](https://github.com/ffrostfall/BridgeNet2/releases/tag/v0.3.0): 6/8/2023
 
 ### **Added**
 
@@ -146,7 +146,7 @@ This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
 - Hotfix
 
-## [version 0.2.1](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.2.1): 6/3/2023
+## [version 0.2.1](https://github.com/ffrostfall/BridgeNet2/releases/tag/v0.2.1): 6/3/2023
 
 ### **Added**
 
@@ -160,7 +160,7 @@ This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
 - Default format/type security errors no longer throw
 
-## [version 0.2.0](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.2.0): 5/11/2023
+## [version 0.2.0](https://github.com/ffrostfall/BridgeNet2/releases/tag/v0.2.0): 5/11/2023
 
 ### **Added**
 
@@ -178,6 +178,6 @@ This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 - Added single-player targeting
 - "Silent" logs will display only in studio
 
-## [version 0.1.0](https://github.com/ffrostflame/BridgeNet2/releases/tag/v0.1.0): 2/19/2023
+## [version 0.1.0](https://github.com/ffrostfall/BridgeNet2/releases/tag/v0.1.0): 2/19/2023
 
 - Release
