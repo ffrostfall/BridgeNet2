@@ -1,4 +1,3 @@
---!strict
 local Types = require(script.Parent.Parent.Parent.Types)
 local Output = require(script.Parent.Parent.Parent.Utilities.Output)
 

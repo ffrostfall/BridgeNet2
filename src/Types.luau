@@ -1,4 +1,3 @@
---!strict
 export type Set<T> = { [T]: true | false }
 export type Array<T> = { [number]: T }
 export type Callback = (...unknown) -> ()

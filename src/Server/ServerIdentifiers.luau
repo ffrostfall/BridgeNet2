@@ -1,4 +1,3 @@
---!strict
 local Constants = require(script.Parent.Parent.Constants)
 local wallyInstanceManager = require(script.Parent.Parent.Parent.wallyInstanceManager)
 local Types = require(script.Parent.Parent.Types)

@@ -1,4 +1,3 @@
---!strict
 local RunService = game:GetService("RunService")
 
 local wallyInstanceManager = require(script.Parent.Parent.Parent.wallyInstanceManager)

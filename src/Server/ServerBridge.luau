@@ -1,4 +1,3 @@
---!strict
 local Constants = require(script.Parent.Parent.Constants)
 local RemotePacketSizeCounter = require(script.Parent.Parent.Parent.RemotePacketSizeCounter)
 local ServerProcess = require(script.Parent.ServerProcess)

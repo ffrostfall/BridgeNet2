@@ -1,4 +1,3 @@
---!strict
 local Types = require(script.Parent.Parent.Types)
 
 return {

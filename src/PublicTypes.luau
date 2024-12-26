@@ -1,10 +1,9 @@
---!strict
 local Types = require(script.Parent.Types)
 
 export type ServerBridge<send> = {
 	Fire: (
 		self: ServerBridge<send>,
-		target: Player | (Types.AllPlayerContainer | Types.SetPlayerContainer),
+		target: Player | Types.AllPlayerContainer | Types.SetPlayerContainer,
 		content: send
 	) -> (),
 	Connect: (

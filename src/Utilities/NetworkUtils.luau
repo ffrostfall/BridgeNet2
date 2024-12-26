@@ -1,4 +1,3 @@
---!strict
 local HttpService = game:GetService("HttpService")
 
 local Output = require(script.Parent.Output)

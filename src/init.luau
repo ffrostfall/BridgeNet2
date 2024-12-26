@@ -1,4 +1,3 @@
---!strict
 local RunService = game:GetService("RunService")
 
 local Client = require(script.Client)

@@ -1,4 +1,3 @@
---!strict
 local MockConnection = require(script.Parent.MockConnection)
 local Constants = require(script.Parent.Parent.Constants)
 local Output = require(script.Parent.Parent.Utilities.Output)

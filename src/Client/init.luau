@@ -1,4 +1,3 @@
---!strict
 local ClientBridge = require(script.ClientBridge)
 local ClientIdentifiers = require(script.ClientIdentifiers)
 local ClientProcess = require(script.ClientProcess)

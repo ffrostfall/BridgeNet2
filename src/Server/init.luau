@@ -1,4 +1,3 @@
---!strict
 local Types = require(script.Parent.Types)
 local isEditMode = require(script.Parent.Utilities.isEditMode)
 local PlayerContainers = require(script.PlayerContainers)

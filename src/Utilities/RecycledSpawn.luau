@@ -18,5 +18,6 @@ return function(fn: (...any) -> (), ...): ()
 		freeThread = coroutine.create(yielder)
 		task.spawn(freeThread :: thread)
 	end
+
 	task.spawn(freeThread :: thread, fn, ...)
 end
