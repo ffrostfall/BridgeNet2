@@ -1,5 +1,5 @@
 local process = require("@src/client/process")
-local identifiers = require("@src/identifiers/client")
+local identifiers = require("@src/server/identifiers")
 local dataModelTree = require("@src/dataModelTree")
 local logger = require("@src/logger").new("client")
 local logStrings = require("@src/logStrings")

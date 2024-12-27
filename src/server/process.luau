@@ -4,15 +4,12 @@ local RunService = game:GetService("RunService")
 
 local dataModelTree = require("@src/dataModelTree")
 local types = require("@src/types")
-local encode = require("@src/core/encode")
-local signal = require("@pkg/signal")
-local logger = require("@src/logger").new("server process")
-local logStrings = require("@src/logStrings")
+local serializer = require("@src/core/serializer")
+local deserializer = require("@src/core/deserializer")
 
 local remote: RemoteEvent = nil
 local playerQueues: { [Player]: types.Queue } = {}
 local readyPlayers: { [Player]: true } = {}
-local idToSignal: { [number]: signal.Identity<...any> } = {}
 local fireClient = Instance.new("RemoteEvent").FireClient
 
 local server = {}
@@ -32,6 +29,10 @@ function server.init(tree: dataModelTree.Identity)
 
 	remote = tree.remote
 
+	for _, player in Players:GetPlayers() do
+		playerQueues[player] = {}
+	end
+
 	Players.PlayerAdded:Connect(function(player)
 		playerQueues[player] = {}
 	end)
@@ -43,57 +44,8 @@ function server.init(tree: dataModelTree.Identity)
 
 	RunService.PostSimulation:Connect(server.step)
 	tree.remote.OnServerEvent:Connect(function(player, packed)
-		local events: { [number]: { unknown } }, buff: buffer = packed[1], packed[2]
-
-		if _G.__timetracing__ == "true" then
-			debug.profilebegin("server event begin")
-		end
-
-		if _G.__verbose__ == "true" then
-			print("remote call", player, events, buff)
-		end
-
-		for index, calls in events do
-			local id = buffer.readu8(buff, index - 1)
-			local eventSignal = idToSignal[id]
-			if not eventSignal then
-				warn("todo: handle this case")
-				continue
-			end
-
-			for _, value in calls do
-				-- Event logic
-				eventSignal:fire(value)
-			end
-		end
-
-		if _G.__timetracing__ then
-			debug.profilebegin("server event end")
-		end
+		deserializer.decode(packed[1], packed[2], player)
 	end)
-end
-
-function server.addEvent(id: number)
-	if _G.__verbose__ == "true" then
-		print("registering event", id)
-	end
-
-	local eventSignal = signal()
-
-	idToSignal[id] = eventSignal
-end
-
-function server.connect(id: number, callback: (content: unknown) -> ()): () -> ()
-	if _G.__verbose__ == "true" then
-		print("connection to", id)
-	end
-
-	local eventSignal = idToSignal[id]
-	if not eventSignal then
-		return logger:fatal(string.format(logStrings.errors.SIGNAL_NOT_INITIALIZED, tostring(id)))
-	end
-
-	return eventSignal:connect(callback)
 end
 
 function server.firePlayer(player: Player, id: number, content: unknown)
@@ -119,7 +71,7 @@ function server.emptyPlayerQueue(player: Player)
 		print(`emptying {player.Name} queue`)
 	end
 
-	local serialized = encode(playerQueues[player])
+	local serialized = serializer(playerQueues[player])
 	fireClient(remote, player, { serialized.events, serialized.buff :: any } :: any)
 	table.clear(playerQueues[player])
 end

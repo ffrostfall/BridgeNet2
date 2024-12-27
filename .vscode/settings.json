@@ -6,6 +6,7 @@
   
   "editor.detectIndentation": false,
   "editor.insertSpaces": false,
+  "files.eol": "\n",
   
   "luau-lsp.completion.imports.separateGroupsWithLine": true,
   "luau-lsp.completion.imports.suggestRequires": false,

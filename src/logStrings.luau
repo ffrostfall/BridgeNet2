@@ -8,6 +8,10 @@ local errorStrings = {
 
 	TREE_FAILURE = "tree failed to initialize: \n\t%*",
 	SIGNAL_NOT_INITIALIZED = "tried to connect to event ID [%*], but it wasnt registered",
+
+	PARALLEL_DISALLOWED = "cannot call function %* in parallel",
+
+	ID_TIMEOUT_EXHAUSTED = "TODO error message",
 }
 
 local processed: { [any]: any } = {}

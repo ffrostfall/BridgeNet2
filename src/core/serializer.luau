@@ -1,6 +1,7 @@
+--!native
 local types = require("@src/types")
 
-local function encode(queue: types.Queue): types.SerializedPacket
+local function serializer(queue: types.Queue): types.SerializedPacket
 	local outgoingEvents: types.SerializedPacket = {
 		events = {},
 		buff = buffer.create(0),
@@ -35,4 +36,4 @@ local function encode(queue: types.Queue): types.SerializedPacket
 	return outgoingEvents
 end
 
-return encode
+return serializer

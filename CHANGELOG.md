@@ -2,6 +2,56 @@
 
 This project uses [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
+## version 2.0.0-rc1: 12/xx/2024
+
+This is a rewrite.
+
+### TODO
+
+- Added `pass` and `drop` functions to middleware. This lets you drop data going through middleware explicitly
+
+### Added
+
+- Added support for using BridgeNet2 in parallel
+- Added `ServerBridge:Fire(player)`, `ServerBridge:FireAll()`, `ServerBridge:FireAllExcept`, `ServerBridge:FireGroup`
+- Added an invocation queue. This should help with some loading order issues and just fix some edge cases
+- Added a cap of 255 identifiers. This is because if you go over that, it would cause de-optimization
+
+### Improvements
+
+- Connections are now functions. Disconnect by calling the connection
+- Instead of a custom signal implementation, luausignal is used. This should yield perf improvements
+- Completely redid the backend using an improved format. Should see slightly better bandwidth and massively improved CPU usage
+- `ServerBridge.OnServerInvoke = func` is now `ServerBridge:OnInvoke(func)`
+- Enabled native codegen in a few places
+- Codebase is now properly typechecked
+- Redid logging & error messages
+- No longer using wally instance manager. Now using a reconciliation-based system (this should help w packages and parallel)
+- Receive & send code is now completely shared
+
+### Fixes
+
+- Fixed players loading before initialization being bugged
+- Fixed requiring "warmup"
+
+### Removed
+
+- Removed Player containers
+- Removed Connection class
+- Removed `BridgeNet2.CreateUUID()` (just use httpservice tbh)
+- Removed rate limiting. It's better to have it implemented on the user side
+- Removed `Bridge:Destroy()`. This did not work anyways
+- Removed `BridgeNet2.HandleInvalidPlayer`. It's dangerous and shouldn't actually be used to ban players
+
+### Internal Codebase Improvements
+
+- Casing is now consistent: Everything internal is now camelCase, everything external is now PascalCase
+- Introduced automated testing
+- Switched to string requires using darklua
+- Switched to Luau syntax highlighting
+- Switched line endings from `crlf` to `lf`
+- Replaced JavaScript tooling with Lune tooling
+
 ## [version 1.0.0](https://github.com/ffrostfall/BridgeNet2/releases/tag/v1.0.0): 10/20/2023
 
 ### Added

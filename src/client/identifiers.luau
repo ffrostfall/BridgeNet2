@@ -1,7 +1,7 @@
 local dataModelTree = require("@src/dataModelTree")
 local logStrings = require("@src/logStrings")
 local logger = require("@src/logger").new()
-local map = require("@src/identifiers/map")
+local identifierMap = require("@src/identifierMap")
 
 local client = {}
 
@@ -12,7 +12,7 @@ function client.init(tree: dataModelTree.Identity)
 			continue
 		end
 
-		map.addIdentifier(name, id)
+		identifierMap.addIdentifier(name, id)
 	end
 
 	tree.identifiers.AttributeChanged:Connect(function(name)
@@ -20,10 +20,10 @@ function client.init(tree: dataModelTree.Identity)
 
 		if typeof(id) == "number" then
 			-- Added case
-			map.addIdentifier(name, id)
+			identifierMap.addIdentifier(name, id)
 		elseif not id then
 			-- Removed case
-			map.removeIdentifier(name)
+			identifierMap.removeIdentifier(name)
 		end
 	end)
 end

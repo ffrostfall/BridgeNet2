@@ -13,6 +13,7 @@ export type Identity = {
 	remote: RemoteEvent,
 	meta: RemoteEvent,
 	parallel: BindableEvent,
+	parallelConnections: Camera,
 
 	identifiers: Folder,
 }
@@ -23,17 +24,20 @@ local function create(): Identity
 	local meta = Instance.new("RemoteEvent")
 	local identifiers = Instance.new("Folder")
 	local parallel = Instance.new("BindableEvent")
+	local parallelConnections = Instance.new("Camera")
 
 	identifiers.Name = "identifiers"
 	meta.Name = "meta"
 	remote.Name = "remote"
 	container.Name = "bridgenet2"
 	parallel.Name = "parallel"
+	parallelConnections.Name = "parallelConnections"
 
 	identifiers.Parent = container
 	meta.Parent = container
 	remote.Parent = container
 	parallel.Parent = container
+	parallelConnections.Parent = container
 
 	container.Parent = ReplicatedStorage
 
@@ -43,6 +47,7 @@ local function create(): Identity
 		meta = meta,
 		parallel = parallel,
 		identifiers = identifiers,
+		parallelConnections = parallelConnections,
 	}
 	cached = tree
 
@@ -79,11 +84,17 @@ local function find(): result.Identity<Identity>
 		return result(false, logStrings.errors.INSTANCE_NOT_VALID)
 	end
 
+	local parallelConnections = container:WaitForChild("parallelConnections", WFC_TIMEOUT)
+	if not (parallelConnections and parallelConnections:IsA("Camera")) then
+		return result(false, logStrings.errors.INSTANCE_NOT_VALID)
+	end
+
 	local tree = {
 		container = container,
 		remote = remote,
 		parallel = parallel,
 		meta = meta,
+		parallelConnections = parallelConnections,
 		identifiers = identifiers,
 	}
 	cached = tree

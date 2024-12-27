@@ -1,19 +1,17 @@
 local RunService = game:GetService("RunService")
 
-local encode = require("@src/core/encode")
+local serializer = require("@src/core/serializer")
+local deserializer = require("@src/core/deserializer")
 local types = require("@src/types")
 local dataModelTree = require("@src/dataModelTree")
 local logger = require("@src/logger").new("main client process")
 local logStrings = require("@src/logStrings")
-local signal = require("@pkg/signal")
 
 local replicationRate: number = 1 / 61
 local lastReplicationTick: number = 0
 local queue: types.Queue = {}
 local remote: RemoteEvent = nil
 local metaRemote: RemoteEvent = nil
-local idToSignal: { [number]: signal.Identity<...any> } = {}
-local invocationQueue: { [number]: {} } = {}
 local fireServer = Instance.new("RemoteEvent").FireServer
 
 local function _assertRemote(func: string): ()
@@ -31,43 +29,7 @@ function client.init(tree: dataModelTree.Identity)
 	tree.parallel.Event:Connect(client.addEventCall)
 	RunService.PostSimulation:Connect(client.step)
 	remote.OnClientEvent:Connect(function(packed)
-		local events: { [number]: { unknown } }, buff: buffer = packed[1], packed[2]
-
-		if _G.__timetracing__ == "true" then
-			debug.profilebegin("client event begin")
-		end
-
-		if _G.__verbose__ == "true" then
-			print("remote call", events, buff)
-		end
-
-		for index, calls in events do
-			local id = buffer.readu8(buff, index - 1)
-			local eventSignal = idToSignal[id]
-			if not eventSignal then
-				warn("todo: handle this case")
-				continue
-			end
-
-			-- Invocation queue logic
-			-- gets if there are no connections to the table. Super hacky approach!
-			if next(eventSignal) == nil then
-				for _, value in calls do
-					table.insert(invocationQueue[id], value)
-				end
-
-				continue
-			end
-
-			for _, value in calls do
-				-- Event logic
-				eventSignal:fire(value)
-			end
-		end
-
-		if _G.__timetracing__ == "true" then
-			debug.profilebegin("client event end")
-		end
+		deserializer.decode(packed[1], packed[2])
 	end)
 
 	metaRemote:FireServer("\0")
@@ -82,30 +44,9 @@ function client.addEventCall(id: number, content: unknown)
 	table.insert(queue, content)
 end
 
-function client.registerEvent(id: number)
-	if _G.__verbose__ == "true" then
-		print("registering event", id)
-	end
-	local eventSignal = signal()
-
-	idToSignal[id] = eventSignal
-end
-
-function client.connect(id: number, callback: (content: unknown) -> ()): () -> ()
-	if _G.__verbose__ == "true" then
-		print("connection to", id)
-	end
-	local eventSignal = idToSignal[id]
-	if not eventSignal then
-		return logger:fatal(string.format(logStrings.errors.SIGNAL_NOT_INITIALIZED, tostring(id)))
-	end
-
-	return eventSignal:connect(callback)
-end
-
 function client.step(deltaTime: number)
 	if ((os.clock() - lastReplicationTick) >= replicationRate) and (#queue > 0) then
-		local serialized = encode(queue)
+		local serialized = serializer(queue)
 		fireServer(remote, { serialized.events :: any, serialized.buff :: any } :: any)
 		table.clear(queue)
 

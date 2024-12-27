@@ -5,7 +5,7 @@ local serverActor = require("@src/initialization/serverActor")
 local clientSerial = require("@src/initialization/clientSerial")
 local serverSerial = require("@src/initialization/serverSerial")
 
-local threadContext: "actor" | "serial" = if script:FindFirstChildWhichIsA("Actor") ~= nil then "actor" else "serial"
+local threadContext: "actor" | "serial" = if script:GetActor() ~= nil then "actor" else "serial"
 local runContext: "server" | "client" = if RunService:IsServer() then "server" else "client"
 
 if threadContext == "actor" and runContext == "client" then
