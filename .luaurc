@@ -1,6 +1,12 @@
 {
 	"languageMode": "strict",
 	"aliases": {
-		"lune": "~/.lune/.typedefs/0.8.9/"
+		"pkg": "Packages/",
+		"dev-pkg": "DevPackages/",
+		"vendor": "vendor/",
+		"src": "src/",
+		"tests": "tests/",
+		"lune": "~/.lune/.typedefs/0.8.9/",
+		"ext": "external/"
 	}
 }

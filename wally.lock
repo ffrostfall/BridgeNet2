@@ -5,16 +5,11 @@ registry = "test"
 [[package]]
 name = "ffrostfall/bridgenet2"
 version = "1.0.0"
-dependencies = [["RemotePacketSizeCounter", "pysephwasntavailable/remotepacketsizecounter@2.1.0"], ["TableKit", "ffrostfall/tablekit@0.2.4"], ["wallyInstanceManager", "ffrostfall/wally-instance-manager@0.1.0"]]
+dependencies = [["RemotePacketSizeCounter", "pysephwasntavailable/remotepacketsizecounter@2.1.0"], ["signal", "ffrostfall/luausignal@0.2.1"]]
 
 [[package]]
-name = "ffrostfall/tablekit"
-version = "0.2.4"
-dependencies = []
-
-[[package]]
-name = "ffrostfall/wally-instance-manager"
-version = "0.1.0"
+name = "ffrostfall/luausignal"
+version = "0.2.1"
 dependencies = []
 
 [[package]]

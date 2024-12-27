@@ -1,0 +1,22 @@
+{
+	"name": "bridgenet2-tests",
+	"emitLegacyScripts": false,
+
+	"tree": {
+		"$className": "DataModel",
+
+		"ReplicatedStorage": {
+			"Packages": {
+				"$path": "Packages",
+
+				"BridgeNet2": {
+					"$path": "build/package/"
+				}
+			},
+
+			"tests": {
+				"$path": "build/tests/"
+			}
+		}
+	}
+}

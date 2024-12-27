@@ -1,0 +1,10 @@
+{
+	"recommendations": [
+		"johnnymorganz.stylua",
+		"filiptibell.tooling-language-server",
+		"kampfkarren.selene-vscode",
+		"johnnymorganz.luau-lsp",
+		"usernamehw.errorlens",
+		"tamasfe.even-better-toml"
+	]
+}

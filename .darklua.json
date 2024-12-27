@@ -1,0 +1,42 @@
+{
+	"process": [
+		{
+			"current": {
+				"name": "path",
+				"sources": {
+					"@pkg": "Packages/",
+					"@dev-pkg": "DevPackages/",
+					"@tests": "tests/",
+					"@src": "src/"
+				}
+			},
+			"rule": "convert_require",
+			"target": {
+				"indexing_style": "wait_for_child",
+				"name": "roblox",
+				"rojo_sourcemap": "sourcemap.json"
+			}
+		},
+		{
+			"rule": "inject_global_value",
+			"identifier": "__timetracing__",
+			"env": "timetracing"
+		},
+		{
+			"rule": "inject_global_value",
+			"identifier": "__verbose__",
+			"env": "verbose"
+		},
+		{
+			"rule": "inject_global_value",
+			"identifier": "__testmode__",
+			"env": "testmode"
+		},
+		{
+			"rule": "compute_expression"
+		},
+		{
+			"rule": "remove_unused_if_branch"
+		}
+	]
+}

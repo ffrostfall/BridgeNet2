@@ -1,7 +1,32 @@
 {
-	"robloxLsp.workspace.rojoProjectFile": "testing",
-	"luau-lsp.completion.imports.separateGroupsWithLine": true,
-	"luau-lsp.completion.imports.enabled": true,
-	"luau-lsp.sourcemap.rojoProjectFile": "testing.project.json",
-	"luau-lsp.completion.imports.requireStyle": "alwaysRelative"
+  "[luau]": {
+    "editor.defaultFormatter": "JohnnyMorganz.stylua",
+    "editor.formatOnSave": true
+  },
+  
+  "editor.detectIndentation": false,
+  "editor.insertSpaces": false,
+  
+  "luau-lsp.completion.imports.separateGroupsWithLine": true,
+  "luau-lsp.completion.imports.suggestRequires": false,
+  "luau-lsp.completion.imports.suggestServices": true,
+  
+  "luau-lsp.diagnostics.strictDatamodelTypes": true,
+  "luau-lsp.ignoreGlobs": [
+    "**/_Index/**",
+    "build/**",
+    "vendor/**",
+    "Packages/**",
+    ".vscode/**"
+  ],
+  
+  "luau-lsp.sourcemap.autogenerate": false,
+  "luau-lsp.sourcemap.enabled": true,
+  "luau-lsp.sourcemap.includeNonScripts": true,
+  "luau-lsp.types.definitionFiles": [
+    ".vscode/vectorTypes.d.luau"
+  ],
+  
+  "prettier.useTabs": true,
+  "stylua.targetReleaseVersion": "latest",
 }
