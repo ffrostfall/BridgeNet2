@@ -6,3 +6,4 @@ standalone
 *.rbxm
 sourcemap
 sourcemap.json
+src/old/**
