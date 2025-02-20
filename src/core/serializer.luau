@@ -7,8 +7,8 @@ local function serializer(queue: types.Queue): types.SerializedPacket
 		buff = buffer.create(0),
 	}
 
-	local idToIndex: { [number]: number } = {}
-	local indexToId: { [number]: number } = {}
+	local idToIndex: { number } = {}
+	local indexToId: { number } = {}
 
 	for i = 1, #queue, 2 do
 		local id = queue[i] :: number

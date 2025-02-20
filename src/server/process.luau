@@ -7,7 +7,7 @@ local types = require("@src/types")
 local serializer = require("@src/core/serializer")
 local deserializer = require("@src/core/deserializer")
 
-local remote: RemoteEvent = nil
+local remote: RemoteEvent
 local playerQueues: { [Player]: types.Queue } = {}
 local readyPlayers: { [Player]: true } = {}
 local fireClient = Instance.new("RemoteEvent").FireClient

@@ -15,7 +15,7 @@ local errorStrings = {
 }
 
 local processed: { [any]: any } = {}
-for errorName, errorText in errorStrings do
+for errorName, errorText in pairs(errorStrings) do
 	if errorName == "TREE_FAILURE" then
 		processed[errorName] = errorText
 		continue

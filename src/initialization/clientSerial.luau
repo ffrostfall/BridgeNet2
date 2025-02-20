@@ -4,7 +4,7 @@ local dataModelTree = require("@src/dataModelTree")
 local logger = require("@src/logger").new("client")
 local logStrings = require("@src/logStrings")
 
-return function(): ()
+return function()
 	local treeRes = dataModelTree()
 	if not treeRes.success then
 		logger:warn(string.format(logStrings.errors.TREE_FAILURE, treeRes.err))

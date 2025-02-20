@@ -4,7 +4,7 @@ local logStrings = require("@src/logStrings")
 local identifierMap = require("@src/identifierMap")
 
 local counter: Identifier = 1
-local container: Folder = nil
+local container: Folder
 
 export type Identifier = number
 

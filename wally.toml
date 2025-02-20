@@ -8,4 +8,4 @@ license = "MIT"
 
 [dependencies]
 RemotePacketSizeCounter = "pysephwasntavailable/remotepacketsizecounter@2.1.0"
-signal = "ffrostfall/luausignal@0.2.1"
+signal = "ffrostfall/luausignal@0.4.0"
