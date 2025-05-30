@@ -1,10 +1,11 @@
-Packages
-node_modules
+.DS_Store
+
+# Moonwave docs
 build
-standalone.rbxm
-standalone
-*.rbxm
-sourcemap
+
+# Rojo
 sourcemap.json
-src/old/**
-sourcemap.json
+build.rbxl
+build.rbxl.lock
+
+bridgenet2.rbxm

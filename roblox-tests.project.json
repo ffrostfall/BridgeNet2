@@ -1,0 +1,24 @@
+{
+	"name": "bridgenet2-tests",
+
+	"tree": {
+		"$className": "DataModel",
+
+		"ReplicatedStorage": {
+			"$className": "ReplicatedStorage",
+
+			"benches": {
+				"$path": "benches"
+			},
+
+			"tests": {
+				"$className": "Folder",
+
+				"server": { "$path": "tests/roblox/server" },
+				"client": { "$path": "tests/roblox/client" },
+
+				"dataset": { "$path": "tests/dataset" }
+			}
+		}
+	}
+}

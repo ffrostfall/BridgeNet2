@@ -1,12 +1,9 @@
 {
 	"languageMode": "strict",
 	"aliases": {
-		"pkg": "Packages/",
-		"dev-pkg": "DevPackages/",
+		"bridgenet2": "src/",
 		"vendor": "vendor/",
-		"src": "src/",
 		"tests": "tests/",
-		"lune": "~/.lune/.typedefs/0.8.9/",
-		"ext": "external/"
+		"lute": "~/.lute/typedefs/0.1.0/"
 	}
 }

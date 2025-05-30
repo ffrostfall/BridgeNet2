@@ -1,11 +1,28 @@
 [package]
 name = "ffrostfall/bridgenet2"
-version = "1.0.0"
+version = "2.0.0"
 registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 description = "The successor to BridgeNet, BridgeNet2 is a blazing-fast networking library designed for scale and performance."
 license = "MIT"
-
-[dependencies]
-RemotePacketSizeCounter = "pysephwasntavailable/remotepacketsizecounter@2.1.0"
-signal = "ffrostfall/luausignal@0.4.0"
+exclude = [
+	".github",
+	".lune",
+	".vscode",
+	"tests",
+	"types",
+	"vendor",
+	".gitattributes",
+	".gitignore",
+	".styluaignore",
+	"README.md",
+	"roblox-tests.project.json",
+	"rokit.toml",
+	"sourcemap.json",
+	"stylua.toml",
+	"build",
+	"build.rbxl",
+	"build.rbxl.lock",
+	"bridgenet2.rbxm",
+	"docs",
+]

@@ -1,0 +1,31 @@
+name: unit-testing
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  run:
+    name: Run Luau Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v4
+
+      - name: Install tools
+        uses: CompeyDev/setup-rokit@v0.1.2
+
+      - name: Run Unit Tests
+        id: run_tests
+        run: |
+          output=$(lute tests/init.luau)
+          echo "$output"
+          if [[ "$output" == *"0 fails"* ]]; then
+            echo "Unit Tests Passed"
+          else
+            echo "Error: One or more unit tests failed."
+            exit 1
+          fi
+
+      - name: Run StyLua
+        run: stylua --check .
